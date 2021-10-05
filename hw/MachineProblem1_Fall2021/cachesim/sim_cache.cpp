@@ -9,8 +9,43 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <cmath>
 
 using namespace std;
+
+// generic cache class definition
+class Cache
+{
+    private:
+        int block_size, size, assoc;
+        int replacement, inclusion;
+        int num_sets;
+        int tag_bits, index_bits, offset_bits;
+
+    public:
+        Cache(int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
+        {
+            block_size = b_size;
+            size = cache_size;
+            assoc = cache_assoc;
+            replacement = rep_pol;
+            inclusion = inc_prop;
+
+            num_sets = size / (assoc * block_size);
+            index_bits = log2(num_sets);
+            offset_bits = log2(block_size);
+            tag_bits = 32 - index_bits - offset_bits;
+        }
+
+        void print_details()
+        {
+            cout << endl << "CACHE DETAILS:" << endl;
+            cout << "Number of sets: " << num_sets << endl;
+            cout << "Index bits: " << index_bits << endl;
+            cout << "Block offset bits: " << offset_bits << endl;
+            cout << "Tag bits: " << tag_bits << endl;
+        }
+};
 
 // commandline args:
 /* 
@@ -23,8 +58,8 @@ using namespace std;
  * INCLUSION_PROPERTY: int (0: non-inclusive, 1: inclusive)
  * trace_file: string (trace file path with extension)
  */
-int main(int argc, char *argv[]) {
-    
+int main(int argc, char *argv[])
+{
     int block_size = stoi(argv[1]);
     int l1_size = stoi(argv[2]);
     int l1_assoc = stoi(argv[3]);
@@ -43,6 +78,9 @@ int main(int argc, char *argv[]) {
     cout << "REPLACEMENT POLICY:\t" << replacement << endl;
     cout << "INCLUSION PROPERTY:\t" << inclusion << endl;
     cout << "trace file:\t\t" << trace_path << endl;
+
+    Cache l1(block_size, l1_size, l1_assoc, replacement, inclusion);
+    l1.print_details();
 
     return 0;
 }
