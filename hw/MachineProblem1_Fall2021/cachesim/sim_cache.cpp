@@ -10,8 +10,22 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <fstream>
+#include "sim_cache.h"
 
 using namespace std;
+
+// an individual cache set
+/* 
+ * contains the lines in the cache set, as specified by the cache associativity
+ * also maintains a counter (for LRU replacement policy)
+ */
+class CacheSet
+{
+    private:
+        vector<int> data;
+        int counter = 0;
+};
 
 // generic cache class definition
 class Cache
@@ -21,6 +35,7 @@ class Cache
         int replacement, inclusion;
         int num_sets;
         int tag_bits, index_bits, offset_bits;
+        vector<CacheSet> cache;
 
     public:
         Cache(int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
@@ -44,6 +59,17 @@ class Cache
             cout << "Index bits: " << index_bits << endl;
             cout << "Block offset bits: " << offset_bits << endl;
             cout << "Tag bits: " << tag_bits << endl;
+        }
+
+        void access(string address, char mode)
+        {
+            string tag = address.substr(0, tag_bits);
+            string index = address.substr(tag_bits, tag_bits + index_bits);
+            string offset = address.substr(tag_bits + index_bits, tag_bits + index_bits + offset_bits);
+
+            cout << "Tag: " << tag << endl;
+            cout << "Index: " << index << endl;
+            cout << "Offset: " << offset << endl;
         }
 };
 
@@ -69,6 +95,9 @@ int main(int argc, char *argv[])
     int inclusion = stoi(argv[7]);
     string trace_path = argv[8];
 
+    // dummy run cmd:
+    // ./sim_cache 32 256 1 256 1 0 0 ../traces/gcc_trace.txt
+
     cout << "===== Simulator configuration =====" << endl;
     cout << "BLOCKSIZE:\t\t" << block_size << endl;
     cout << "L1_SIZE:\t\t" << l1_size << endl;
@@ -81,6 +110,26 @@ int main(int argc, char *argv[])
 
     Cache l1(block_size, l1_size, l1_assoc, replacement, inclusion);
     l1.print_details();
+
+    // read address sequence from file
+    string file_line;
+    fstream trace_file(trace_path);
+    string mode, address;
+
+    for (int i = 0; i < 1; i++)
+    {
+        getline(trace_file, file_line);
+        cout << "full line: " << file_line << endl;
+        cout << "mode: " << file_line.at(0) << endl;
+        cout << "address: " << file_line.substr(2, file_line.length()) << endl;;
+    }
+
+    // while (getline(trace_file, file_line))
+    // {
+    //     continue;
+    // }
+
+    trace_file.close();
 
     return 0;
 }
