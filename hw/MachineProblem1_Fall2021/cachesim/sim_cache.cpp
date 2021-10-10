@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     string trace_path = argv[8];
 
     // dummy run cmd:
-    // ./sim_cache 32 256 1 256 1 0 0 ../traces/gcc_trace.txt
+    // ./sim_cache 16 1024 2 0 0 0 0 ../trace_files/gcc_trace.txt
 
     cout << "===== Simulator configuration =====" << endl;
     cout << "BLOCKSIZE:\t\t" << block_size << endl;
@@ -104,30 +104,73 @@ int main(int argc, char *argv[])
     cout << "L1_ASSOC:\t\t" << l1_assoc << endl;
     cout << "L2_SIZE:\t\t" << l2_size << endl;
     cout << "L2_ASSOC:\t\t" << l2_assoc << endl;
-    cout << "REPLACEMENT POLICY:\t" << replacement << endl;
-    cout << "INCLUSION PROPERTY:\t" << inclusion << endl;
+    cout << "REPLACEMENT POLICY:\t";
+
+    switch (replacement)
+    {
+        case 0:
+            cout << "LRU";
+            break;
+
+        case 1:
+            cout << "PLRU";
+            break;
+
+        case 2:
+            cout << "optimal";
+            break;
+
+        default:
+            cout << "LRU";
+            break;
+    }
+
+    cout << endl;
+    cout << "INCLUSION PROPERTY:\t";
+
+    if (inclusion)
+    {
+        cout << "inclusive";
+    }
+    else
+    {
+        cout << "non-inclusive";
+    }
+
+    cout << endl;
     cout << "trace file:\t\t" << trace_path << endl;
 
     Cache l1(block_size, l1_size, l1_assoc, replacement, inclusion);
     l1.print_details();
 
     // read address sequence from file
-    string file_line;
-    fstream trace_file(trace_path);
-    string mode, address;
+    fstream trace_file;
+    // string mode, address;
 
-    for (int i = 0; i < 1; i++)
+    trace_file.open(trace_path, ios::in);
+
+    if (trace_file.is_open())
     {
-        getline(trace_file, file_line);
-        cout << "full line: " << file_line << endl;
-        cout << "mode: " << file_line.at(0) << endl;
-        cout << "address: " << file_line.substr(2, file_line.length()) << endl;;
-    }
+        string file_line;
+        string mode;
+        string address;
 
-    // while (getline(trace_file, file_line))
-    // {
-    //     continue;
-    // }
+        for (int i = 0; i < 3; i++)
+        {
+            trace_file >> mode >> address;
+
+            // in case the line starts with some garbage chars, as it did in my case
+            if (!isalpha(mode[0]))
+            {
+                mode = mode[mode.length() - 1];
+            }
+
+            string bin_address = hex2bin(address);
+
+            cout << "hex address: " << address << endl;
+            cout << "bin address: " << bin_address << endl << endl;
+        }
+    }
 
     trace_file.close();
 
