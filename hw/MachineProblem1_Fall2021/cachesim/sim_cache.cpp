@@ -61,15 +61,15 @@ class Cache
             cout << "Tag bits: " << tag_bits << endl;
         }
 
-        void access(string address, char mode)
+        void access(string address, string mode)
         {
             string tag = address.substr(0, tag_bits);
-            string index = address.substr(tag_bits, tag_bits + index_bits);
-            string offset = address.substr(tag_bits + index_bits, tag_bits + index_bits + offset_bits);
+            string index = address.substr(tag_bits, index_bits);
+            string offset = address.substr(tag_bits + index_bits, offset_bits);
 
-            cout << "Tag: " << tag << endl;
-            cout << "Index: " << index << endl;
-            cout << "Offset: " << offset << endl;
+            cout << tag;
+            cout << " " << index;
+            cout << " " << offset << endl << endl;
         }
 };
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     int inclusion = stoi(argv[7]);
     string trace_path = argv[8];
 
-    // dummy run cmd:
+    // sample run cmd:
     // ./sim_cache 16 1024 2 0 0 0 0 ../trace_files/gcc_trace.txt
 
     cout << "===== Simulator configuration =====" << endl;
@@ -145,7 +145,6 @@ int main(int argc, char *argv[])
 
     // read address sequence from file
     fstream trace_file;
-    // string mode, address;
 
     trace_file.open(trace_path, ios::in);
 
@@ -168,7 +167,9 @@ int main(int argc, char *argv[])
             string bin_address = hex2bin(address);
 
             cout << "hex address: " << address << endl;
-            cout << "bin address: " << bin_address << endl << endl;
+            cout << "bin address: \n" << bin_address << endl << endl;
+
+            l1.access(bin_address, mode);
         }
     }
 
