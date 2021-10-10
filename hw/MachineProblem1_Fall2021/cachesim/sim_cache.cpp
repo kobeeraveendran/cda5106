@@ -15,64 +15,6 @@
 
 using namespace std;
 
-// an individual cache set
-/* 
- * contains the lines in the cache set, as specified by the cache associativity
- * also maintains a counter (for LRU replacement policy)
- */
-class CacheSet
-{
-    private:
-        vector<int> data;
-        int counter = 0;
-};
-
-// generic cache class definition
-class Cache
-{
-    private:
-        int block_size, size, assoc;
-        int replacement, inclusion;
-        int num_sets;
-        int tag_bits, index_bits, offset_bits;
-        vector<CacheSet> cache;
-
-    public:
-        Cache(int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
-        {
-            block_size = b_size;
-            size = cache_size;
-            assoc = cache_assoc;
-            replacement = rep_pol;
-            inclusion = inc_prop;
-
-            num_sets = size / (assoc * block_size);
-            index_bits = log2(num_sets);
-            offset_bits = log2(block_size);
-            tag_bits = 32 - index_bits - offset_bits;
-        }
-
-        void print_details()
-        {
-            cout << endl << "CACHE DETAILS:" << endl;
-            cout << "Number of sets: " << num_sets << endl;
-            cout << "Index bits: " << index_bits << endl;
-            cout << "Block offset bits: " << offset_bits << endl;
-            cout << "Tag bits: " << tag_bits << endl;
-        }
-
-        void access(string address, string mode)
-        {
-            string tag = address.substr(0, tag_bits);
-            string index = address.substr(tag_bits, index_bits);
-            string offset = address.substr(tag_bits + index_bits, offset_bits);
-
-            cout << tag;
-            cout << " " << index;
-            cout << " " << offset << endl << endl;
-        }
-};
-
 // commandline args:
 /* 
  * BLOCKSIZE: int
@@ -143,7 +85,13 @@ int main(int argc, char *argv[])
     Cache l1(block_size, l1_size, l1_assoc, replacement, inclusion);
     l1.print_details();
 
-    // read address sequence from file
+    if (l2_size > 0)
+    {
+        Cache l2(block_size, l2_size, l2_assoc, replacement, inclusion);
+        l2.print_details();
+    }
+
+    // read address sequence from file, line by line
     fstream trace_file;
 
     trace_file.open(trace_path, ios::in);
@@ -167,7 +115,7 @@ int main(int argc, char *argv[])
             string bin_address = hex2bin(address);
 
             cout << "hex address: " << address << endl;
-            cout << "bin address: \n" << bin_address << endl << endl;
+            cout << "bin address: \n" << endl << endl;
 
             l1.access(bin_address, mode);
         }
