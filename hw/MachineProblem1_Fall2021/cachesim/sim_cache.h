@@ -6,8 +6,12 @@
  */
 
 #include <string>
+#include <unordered_map>
 
 using namespace std;
+
+string bin2hex(string address);
+string hex2bin(string address);
 
 // an individual cache line (cell)
 class Line
@@ -114,8 +118,58 @@ class Cache
             cout << tag << ' ' << index << ' ' << offset << endl;
 
             int set_index = stoi(index, nullptr, 2);
+
+            string hex_tag = bin2hex(tag);
+            cout << "TAG AS HEX: " << hex_tag << endl;
         }
 };
+
+// convert binary string to hex
+string bin2hex(string address)
+{
+    string new_address;
+
+    // pad with zeros if length is not a multiple of 4
+    if (address.length() % 4 != 0)
+    {
+        int new_length = (address.length() / 4 + 1) * 4;
+        string padding(new_length - address.length(), '0');
+        padding.append(address);
+        new_address = padding;
+    }
+    else
+    {
+        new_address = address;
+    }
+
+    string hex;
+    unordered_map<string, string> bin_map;
+
+    bin_map["0000"] = '0';
+    bin_map["0001"] = '1';
+    bin_map["0010"] = '2';
+    bin_map["0011"] = '3';
+    bin_map["0100"] = '4';
+    bin_map["0101"] = '5';
+    bin_map["0110"] = '6';
+    bin_map["0111"] = '7';
+    bin_map["1000"] = '8';
+    bin_map["1001"] = '9';
+    bin_map["1010"] = 'a';
+    bin_map["1011"] = 'b';
+    bin_map["1100"] = 'c';
+    bin_map["1101"] = 'd';
+    bin_map["1110"] = 'e';
+    bin_map["1111"] = 'f';
+
+    for (int i = 0; i < new_address.length(); i += 4)
+    {
+        string tmp = new_address.substr(i, 4);
+        hex.append(bin_map[tmp]);
+    }
+
+    return hex;
+}
 
 // convert hex string to 32-bit binary string, padding with leading zeros if needed
 string hex2bin(string address)
@@ -139,77 +193,28 @@ string hex2bin(string address)
     }
 
     string binary;
+    unordered_map<char, string> hex_map;
+
+    hex_map['0'] = "0000";
+    hex_map['1'] = "0001";
+    hex_map['2'] = "0010";
+    hex_map['3'] = "0011";
+    hex_map['4'] = "0100";
+    hex_map['5'] = "0101";
+    hex_map['6'] = "0110";
+    hex_map['7'] = "0111";
+    hex_map['8'] = "1000";
+    hex_map['9'] = "1001";
+    hex_map['a'] = "1010";
+    hex_map['b'] = "1011";
+    hex_map['c'] = "1100";
+    hex_map['d'] = "1101";
+    hex_map['e'] = "1110";
+    hex_map['f'] = "1111";
 
     for (int i = 0; i < new_address.length(); i++)
     {
-        switch (new_address[i])
-        {
-        case '0':
-            binary.append("0000");
-            break;
-
-        case '1':
-            binary.append("0001");
-            break;
-
-        case '2':
-            binary.append("0010");
-            break;
-
-        case '3':
-            binary.append("0011");
-            break;
-
-        case '4':
-            binary.append("0100");
-            break;
-
-        case '5':
-            binary.append("0101");
-            break;
-
-        case '6':
-            binary.append("0110");
-            break;
-
-        case '7':
-            binary.append("0111");
-            break;
-
-        case '8':
-            binary.append("1000");
-            break;
-
-        case '9':
-            binary.append("1001");
-            break;
-
-        case 'a':
-            binary.append("1010");
-            break;
-
-        case 'b':
-            binary.append("1011");
-            break;
-
-        case 'c':
-            binary.append("1100");
-            break;
-
-        case 'd':
-            binary.append("1101");
-            break;
-
-        case 'e':
-            binary.append("1110");
-            break;
-
-        case 'f':
-            binary.append("1111");
-        
-        default:
-            break;
-        }
+        binary.append(hex_map[new_address[i]]);
     }
 
     return binary;
