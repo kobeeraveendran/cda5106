@@ -7,6 +7,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <iomanip>
 
 using namespace std;
 
@@ -96,13 +97,13 @@ class Cache
                 vector<Line> cache_set;
                 cache_set = cache[i].set;
 
-                cout << "Set " << i << ":\t";
+                cout << "Set " << i << ":\t\t";
 
                 for (int j = 0; j < cache_set.size(); j++)
                 {
                     cout << "V: " << cache_set[j].valid << ' ';
                     cout << "D: " << cache_set[j].dirty << ' ';
-                    cout << "tag: " << cache_set[j].tag << '\t';
+                    cout << "T: " << setw(6) << cache_set[j].tag << '\t';
                 }
 
                 cout << endl;
@@ -121,6 +122,16 @@ class Cache
 
             string hex_tag = bin2hex(tag);
             cout << "TAG AS HEX: " << hex_tag << endl;
+
+            for (int i = 0; i < cache[set_index].set.size(); i++)
+            {
+                if (cache[set_index].set[i].tag == "")
+                {
+                    cache[set_index].set[i].tag = hex_tag;
+                    cache[set_index].set[i].valid = 1;
+                    break;
+                }
+            }
         }
 };
 

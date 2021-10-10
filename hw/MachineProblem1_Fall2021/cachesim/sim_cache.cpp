@@ -119,6 +119,8 @@ int main(int argc, char *argv[])
 
             l1.access(bin_address, mode);
         }
+
+        l1.print_details();
     }
 
     trace_file.close();
