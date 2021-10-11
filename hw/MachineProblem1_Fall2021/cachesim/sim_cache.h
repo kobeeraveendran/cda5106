@@ -19,6 +19,7 @@ class Line
 {
     public:
         int valid, dirty;
+        int lru_count;
         string tag;
 
         Line()
@@ -50,6 +51,38 @@ class CacheSet
             set.resize(assoc);
             counter = 0;
         }
+
+        // write to the cache
+        // returns 1 if there's a miss, 0 if there's a hit
+        int write(string hex_tag)
+        {
+            // search for a matching tag in this set
+            for (int i = 0; i < set.size(); i++)
+            {
+                if (set[i].tag == hex_tag)
+                {
+                    // we have a hit
+                    counter++;
+                    set[i].lru_count = counter;
+                    return 0;
+                }
+            }
+
+            // if not in the set, we have a miss and must allocate
+            for (int i = 0; i < set.size(); i++)
+            {
+                if (set[i].tag == "")
+                {
+                    set[i].tag = hex_tag;
+                    set[i].valid = 1;
+                    counter++;
+                    set[i].lru_count = counter;
+                    return 1;
+                }
+            }
+
+            return 0;
+        }
 };
 
 // generic cache class definition
@@ -60,9 +93,11 @@ class Cache
         int replacement, inclusion;
         int num_sets;
         int tag_bits, index_bits, offset_bits;
-        vector<CacheSet> cache;
 
     public:
+        vector<CacheSet> cache;
+        int writes, reads, write_misses, read_misses = 0;
+
         Cache(int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
         {
             block_size = b_size;
@@ -102,7 +137,7 @@ class Cache
                 for (int j = 0; j < cache_set.size(); j++)
                 {
                     cout << "V: " << cache_set[j].valid << ' ';
-                    cout << "D: " << cache_set[j].dirty << ' ';
+                    cout << "C: " << cache_set[j].lru_count << ' ';
                     cout << "T: " << setw(6) << cache_set[j].tag << '\t';
                 }
 
@@ -123,14 +158,12 @@ class Cache
             string hex_tag = bin2hex(tag);
             cout << "TAG AS HEX: " << hex_tag << endl;
 
-            for (int i = 0; i < cache[set_index].set.size(); i++)
+            vector<Line> curr_set;
+            curr_set = cache[set_index].set;
+
+            if (mode == "w")
             {
-                if (cache[set_index].set[i].tag == "")
-                {
-                    cache[set_index].set[i].tag = hex_tag;
-                    cache[set_index].set[i].valid = 1;
-                    break;
-                }
+                cache[set_index].write(hex_tag);
             }
         }
 };
