@@ -46,10 +46,13 @@ class CacheSet
         vector<Line> set;
         int counter;
 
-        CacheSet(int assoc)
+        CacheSet(int assoc, int rep_pol)
         {
             set.resize(assoc);
-            counter = 0;
+            if (rep_pol == 0)
+            {
+                counter = 0;
+            }
         }
 
         // write to the cache
@@ -62,6 +65,7 @@ class CacheSet
                 if (set[i].tag == hex_tag)
                 {
                     // we have a hit
+                    
                     counter++;
                     set[i].lru_count = counter;
                     return 0;
@@ -113,7 +117,7 @@ class Cache
 
             for (int i = 0; i < num_sets; i++)
             {
-                cache.push_back(CacheSet(assoc));
+                cache.push_back(CacheSet(assoc, rep_pol));
             }
         }
 
