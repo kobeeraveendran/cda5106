@@ -106,14 +106,15 @@ int main(int argc, char *argv[])
         {
             trace_file >> mode >> address;
 
-            // in case the line starts with some garbage chars, as it did in my case
-            if (!isalpha(mode[0]))
-            {
-                mode = mode[mode.length() - 1];
-            }
+            // in case the file/line starts with some garbage chars, skip them
+            // if (!isalpha(mode[0]))
+            // {
+            //     mode = mode[mode.length() - 1];
+            // }
 
             string bin_address = hex2bin(address);
 
+            cout << endl << endl << "mode: " << mode << endl;
             cout << "hex address: " << address << endl;
             cout << "bin address: \n" << endl << endl;
 
