@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <iomanip>
+#include <vector>
 
 using namespace std;
 
@@ -44,7 +45,7 @@ class CacheSet
 {
     public:
         vector<Line> set;
-        int counter;
+        int counter, replacement;
 
         CacheSet(int assoc, int rep_pol)
         {
@@ -59,30 +60,46 @@ class CacheSet
         // returns 1 if there's a miss, 0 if there's a hit
         int write(string hex_tag)
         {
-            // search for a matching tag in this set
+            int first_invalid_index = -1;
+
+            // find available valid blocks with matching tag
             for (int i = 0; i < set.size(); i++)
             {
-                if (set[i].tag == hex_tag)
+                // tag is valid, so compare them
+                if (set[i].valid == 1)
                 {
-                    // we have a hit
-                    
-                    counter++;
-                    set[i].lru_count = counter;
-                    return 0;
+                    // we have a hit, so do replacement poilcy-related updates
+                    if (set[i].tag == hex_tag)
+                    {
+                        // if replacement pol. is LRU
+                        if (replacement == 0)
+                        {
+                            counter++;
+                            set[i].lru_count = counter;
+                        }
+                        return 0;
+                    }
+                }
+                else
+                {
+                    // if this is the first invalid index encountered, save it 
+                    // in case we have a miss
+                    if (first_invalid_index == -1)
+                    {
+                        first_invalid_index = i;
+                    }
                 }
             }
 
-            // if not in the set, we have a miss and must allocate
-            for (int i = 0; i < set.size(); i++)
+            // if we missed above and there is an invalid index, write to the first invalid 
+            // index and make it valid
+            if (first_invalid_index != -1)
             {
-                if (set[i].tag == "")
-                {
-                    set[i].tag = hex_tag;
-                    set[i].valid = 1;
-                    counter++;
-                    set[i].lru_count = counter;
-                    return 1;
-                }
+                set[first_invalid_index].tag = hex_tag;
+                set[first_invalid_index].valid = 1;
+                counter++;
+                set[first_invalid_index].lru_count = counter;
+                return 1;
             }
 
             return 0;
@@ -155,18 +172,20 @@ class Cache
             string index = address.substr(tag_bits, index_bits);
             string offset = address.substr(tag_bits + index_bits, offset_bits);
 
-            cout << tag << ' ' << index << ' ' << offset << endl;
+            cout << tag << ' ' << index << ' ' << offset << endl << endl;
 
             int set_index = stoi(index, nullptr, 2);
 
             string hex_tag = bin2hex(tag);
             cout << "TAG AS HEX: " << hex_tag << endl;
+            cout << "SET INDEX: " << set_index << endl;
 
             vector<Line> curr_set;
             curr_set = cache[set_index].set;
 
             if (mode == "w")
             {
+                cout << "WRITING TO INDEX: " << set_index << endl;
                 cache[set_index].write(hex_tag);
             }
         }
