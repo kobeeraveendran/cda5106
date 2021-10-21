@@ -92,7 +92,17 @@ class Cache
                     cout << "V: " << cache[i][j].valid << ' ';
                     stringstream ss;
                     ss << hex << cache[i][j].tag;
-                    string dirty = cache[i][j].dirty ? " D" : "  ";
+                    string dirty;
+
+                    if (cache[i][j].dirty)
+                    {
+                        dirty = " D";
+                    }
+                    else
+                    {
+                        dirty = "  ";
+                    }
+
                     cout << "T: " << setw(8) << ss.str() << dirty << '\t';
                 }
 
@@ -131,9 +141,11 @@ class Cache
                     // if valid, compare the tags
                     if (cache[index][i].tag == tag)
                     {
-                        // we have a hit; if reading, make the block clean if dirty
-                        // or, if writing, mark the block as dirty until it's read later
-                        cache[index][i].dirty = (mode == "r") ? 0 : 1;
+                        // we have a hit; if writing, mark the block as dirty
+                        if (mode == "w")
+                        {
+                            cache[index][i].dirty = 1; //(mode == "r") ? 0 : 1;
+                        }
 
                         // do replacement policy-related updates
                         if (replacement == 0)
@@ -143,6 +155,8 @@ class Cache
                         }
 
                         // TODO: add other replacement policies
+
+                        return;
                     }
                 }
                 else
@@ -155,7 +169,14 @@ class Cache
             // if there was a miss and an invalid index, write to it and make it valid
             if (invalid_index != -1)
             {
+                // for write misses, valid = 1 and dirty = 1
                 cache[index][invalid_index] = Line(1, 1, tag, lru_counter[index]++);
+
+                // if reading instead, mem will be up-to-date, so dirty = 0
+                if (mode == "r")
+                {
+                    cache[index][invalid_index].dirty = 0;
+                }
             }
             else
             {
@@ -176,8 +197,31 @@ class Cache
                         }
                     }
 
-                    // replace with new block
-                    cache[index][min_index] = Line(1, 1, tag, lru_counter[index]++);
+                    if (cache[index][min_index].dirty)
+                    {
+                        // if dirty, we must first write-back to memory (or next level cache) before evicting
+                        // TODO
+                    }
+
+                    cache[index][min_index] = Line(1, 0, tag, lru_counter[index]++);
+
+                    if (mode == "w")
+                    {
+                        // if we wrote instead of read, dirty bit must be set
+                        cache[index][min_index].dirty = 1;
+                    }
+
+                    // // replace with new block
+                    // if (cache[index][min_index].dirty)
+                    // {
+                    //     // TODO: write back the data
+                    //     cache[index][min_index] = Line(0, 0, tag, lru_counter[index]++);
+                    // }
+                    // else
+                    // {
+                    //     cache[index][min_index] = Line(0, 0, tag, lru_counter[index]++);
+                    // }
+                    // cache[index][min_index] = Line(1, 0, tag, lru_counter[index]++);
 
                     // TODO: handle eviction to next level of mem hierarchy
                 }
@@ -253,12 +297,10 @@ int main(int argc, char *argv[])
     cout << "trace file:\t\t" << trace_path << endl;
 
     Cache l1(block_size, l1_size, l1_assoc, replacement, inclusion);
-    l1.print_details();
 
     if (l2_size > 0)
     {
         Cache l2(block_size, l2_size, l2_assoc, replacement, inclusion);
-        l2.print_details();
     }
 
     // read address sequence from file, line by line
@@ -282,13 +324,6 @@ int main(int argc, char *argv[])
                 mode = mode[mode.length() - 1];
             }
 
-            // string bin_address = hex2bin(address);
-
-            // cout << endl << endl << "mode: " << mode << endl;
-            // cout << "hex address: " << address << endl;
-            // cout << "bin address: ";
-
-            // l1.access(bin_address, mode);
             l1.access(address, mode);
             count++;
         }
