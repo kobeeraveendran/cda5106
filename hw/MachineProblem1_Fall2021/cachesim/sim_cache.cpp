@@ -12,6 +12,7 @@
 #include <cmath>
 #include <fstream>
 #include <bitset>
+#include <iomanip>
 #include "sim_cache.h"
 
 using namespace std;
@@ -19,13 +20,20 @@ using namespace std;
 class Line
 {
     public:
-        int valid, dirty, lru_count = 0;
-        string tag;
+        int valid, dirty, tag, lru_count = 0;
 
         Line()
         {
             valid = 0;
             dirty = 0;
+        }
+
+        Line(int v, int d, int t, int c)
+        {
+            valid = v;
+            dirty = d;
+            tag = t;
+            lru_count = c;
         }
 };
 
@@ -36,6 +44,7 @@ class Cache
         int num_sets, tag_bits, index_bits, offset_bits;
         int tag_mask, index_mask, offset_mask;
         vector<vector<Line>> cache;
+        vector<int> lru_counter;
 
     public:
         
@@ -56,6 +65,7 @@ class Cache
             index_mask = pow(2, index_bits) - 1;
 
             cache.resize(num_sets);
+            lru_counter.resize(num_sets);
 
             for (int i = 0; i < cache.size(); i++)
             {
@@ -75,23 +85,32 @@ class Cache
 
             for (int i = 0; i < cache.size(); i++)
             {
-                cout << "Set " << i << ":\t\t";
+                cout << "Set " << i << ":\tLRU count: " << lru_counter[i] << "\t";
 
                 for (int j = 0; j < cache[i].size(); j++)
                 {
                     cout << "V: " << cache[i][j].valid << ' ';
                     cout << "C: " << cache[i][j].lru_count << ' ';
-                    cout << "T: " << setw(6) << cache[i][j].tag << '\t';
+                    stringstream ss;
+                    ss << hex << cache[i][j].tag;
+                    cout << "T: " << setw(6) << ss.str() << '\t';
                 }
 
                 cout << endl;
             }
+
+            int count_sum = 0;
+
+            for (int i = 0; i < lru_counter.size(); i++)
+            {
+                count_sum += lru_counter[i];
+            }
+
+            cout << endl;
         }
 
         void access(string address, string mode)
         {
-
-            // cout << "address to be converted: " << address << endl;
             int32_t bit_address = stoi(address, nullptr, 16);
             int offset, index, tag;
 
@@ -100,6 +119,68 @@ class Cache
             index = bit_address & index_mask;
             bit_address >>= index_bits;
             tag = bit_address;
+
+            // for both reads and writes
+            int first_invalid_index = -1;
+
+            // find available valid blocks with matching tag
+            for (int i = 0; i < cache[index].size(); i++)
+            {
+                if (cache[index][i].valid)
+                {
+                    // if valid, compare the tags
+                    if (cache[index][i].tag == tag)
+                    {
+                        // we have a hit; if reading, make the block clean if dirty
+                        // or, if writing, mark the block as dirty until it's read later
+                        cache[index][i].dirty = (mode == "r") ? 0 : 1;
+
+                        // do replacement policy-related updates
+                        if (replacement == 0)
+                        {
+                            // LRU
+                            cache[index][i].lru_count = lru_counter[index]++;
+                        }
+
+                        // TODO: add other replacement policies
+                    }
+                }
+                else if (first_invalid_index == -1)
+                {
+                    first_invalid_index = i;
+                }
+            }
+
+            // if there was a miss and an invalid index, write to it and make it valid
+            if (first_invalid_index != -1)
+            {
+                cache[index][first_invalid_index] = Line(1, 1, tag, lru_counter[index]++);
+            }
+            else
+            {
+                // if there were no invalid indices, evict the block as determined by the 
+                // replacement policy
+                if (replacement == 0)
+                {
+                    // find the LRU block
+                    int min_index = 0;
+                    int min_count = INT32_MAX;
+
+                    for (int i = 0; i < cache[index].size(); i++)
+                    {
+                        if (cache[index][i].lru_count < min_count)
+                        {
+                            min_count = cache[index][i].lru_count;
+                            min_index = i;
+                        }
+                    }
+
+                    // replace with new block
+                    cache[index][min_index] = Line(1, 1, tag, lru_counter[index]++);
+
+                    // TODO: handle eviction to next level of mem hierarchy
+                }
+            }
         }
 };
 
@@ -193,11 +274,6 @@ int main(int argc, char *argv[])
 
         while (trace_file >> mode >> address)
         {
-
-            if (count > 1)
-            {
-                break;
-            }
 
             // in case the file/line starts with some garbage chars, skip them
             if (!isalpha(mode[0]))
