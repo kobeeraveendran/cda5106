@@ -159,9 +159,9 @@ class Cache
                         return;
                     }
                 }
-                else
+                else if (invalid_index == -1)
                 {
-                    // maintain the latest invalid index in case it needs to be filled
+                    // maintain the earliest-seen invalid index in case it needs to be filled
                     invalid_index = i;
                 }
             }
