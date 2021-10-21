@@ -73,15 +73,15 @@ class Cache
             }
         }
 
-        void print_details()
+        void print_details(int cache_level)
         {
-            cout << endl << "CACHE DETAILS:" << endl;
-            cout << "Number of sets: " << num_sets << endl;
-            cout << "Index bits: " << index_bits << endl;
-            cout << "Block offset bits: " << offset_bits << endl;
-            cout << "Tag bits: " << tag_bits << endl;
+            // cout << endl << "CACHE DETAILS:" << endl;
+            // cout << "Number of sets: " << num_sets << endl;
+            // cout << "Index bits: " << index_bits << endl;
+            // cout << "Block offset bits: " << offset_bits << endl;
+            // cout << "Tag bits: " << tag_bits << endl;
 
-            cout << endl << "CACHE VISUALIZATION:" << endl;
+            cout << "===== L" << cache_level << " contents =====" << endl;
 
             for (int i = 0; i < cache.size(); i++)
             {
@@ -89,7 +89,7 @@ class Cache
 
                 for (int j = 0; j < cache[i].size(); j++)
                 {
-                    cout << "V: " << cache[i][j].valid << ' ';
+                    // cout << "V: " << cache[i][j].valid << ' ';
                     stringstream ss;
                     ss << hex << cache[i][j].tag;
                     string dirty;
@@ -103,7 +103,7 @@ class Cache
                         dirty = "  ";
                     }
 
-                    cout << "T: " << setw(8) << ss.str() << dirty << '\t';
+                    cout << setw(8) << ss.str() << dirty << '\t';
                 }
 
                 cout << endl;
@@ -115,11 +115,9 @@ class Cache
             {
                 count_sum += lru_counter[i];
             }
-
-            cout << endl;
         }
 
-        void access(string address, string mode)
+        int access(string address, string mode)
         {
             int32_t bit_address = stoi(address, nullptr, 16);
             int offset, index, tag;
@@ -156,7 +154,8 @@ class Cache
 
                         // TODO: add other replacement policies
 
-                        return;
+                        // we had a hit
+                        return 0;
                     }
                 }
                 else if (invalid_index == -1)
@@ -211,21 +210,12 @@ class Cache
                         cache[index][min_index].dirty = 1;
                     }
 
-                    // // replace with new block
-                    // if (cache[index][min_index].dirty)
-                    // {
-                    //     // TODO: write back the data
-                    //     cache[index][min_index] = Line(0, 0, tag, lru_counter[index]++);
-                    // }
-                    // else
-                    // {
-                    //     cache[index][min_index] = Line(0, 0, tag, lru_counter[index]++);
-                    // }
-                    // cache[index][min_index] = Line(1, 0, tag, lru_counter[index]++);
-
                     // TODO: handle eviction to next level of mem hierarchy
                 }
             }
+
+            // we had a miss
+            return 1;
         }
 };
 
@@ -303,6 +293,10 @@ int main(int argc, char *argv[])
         Cache l2(block_size, l2_size, l2_assoc, replacement, inclusion);
     }
 
+    // simulation results
+    int l1_reads = 0, l1_readmisses = 0, l1_writes = 0, l1_writemisses = 0, l1_writebacks = 0;
+    int l2_reads = 0, l2_readmisses = 0, l2_writes = 0, l2_writemisses = 0, l2_writebacks = 0;
+
     // read address sequence from file, line by line
     fstream trace_file;
 
@@ -314,6 +308,7 @@ int main(int argc, char *argv[])
         string file_line;
         string mode;
         string address;
+        int res;
 
         while (trace_file >> mode >> address)
         {
@@ -324,16 +319,53 @@ int main(int argc, char *argv[])
                 mode = mode[mode.length() - 1];
             }
 
-            l1.access(address, mode);
+            res = l1.access(address, mode);
+
+            if (mode == "w")
+            {
+                l1_writemisses += res;
+                l1_writes++;
+            }
+            else
+            {
+                l1_readmisses += res;
+                l1_reads++;
+            }
+
             count++;
         }
 
-        l1.print_details();
-
-        cout << "addresses processed: " << count << endl;
+        l1.print_details(1);
     }
 
     trace_file.close();
+
+    int total_mem_traffic = l1_readmisses + l1_writemisses + l1_writebacks + 
+                             l2_readmisses + l2_writemisses + l2_writebacks;
+
+    float l1_missrate = (float)(l1_readmisses + l1_writemisses) / (float)(l1_reads + l1_writes);
+    float l2_missrate = 0;
+    
+    if (l2_size > 0)
+    {
+        l2_missrate = (float)(l2_readmisses + l2_writemisses) / (float)(l2_reads + l2_writes);
+    }
+
+    cout << "===== Simulation results (raw) =====" << endl;
+    cout << "a. number of L1 reads:\t\t" << l1_reads << endl;
+    cout << "b. number of L1 read misses:\t" << l1_readmisses << endl;
+    cout << "c. number of L1 writes:\t\t" << l1_writes << endl;
+    cout << "d. number of L1 write misses:\t" << l1_writemisses << endl;
+    cout << "e. L1 miss rate:\t\t" << l1_missrate << endl;
+    cout << "f. number of L1 writebacks:\t" << l1_writebacks << endl;
+    cout << "g. number of L2 reads:\t\t" << l2_reads << endl;
+    cout << "h. number of L2 read misses:\t" << l2_readmisses << endl;
+    cout << "i. number of L2 writes:\t\t" << l2_writes << endl;
+    cout << "j. number of L2 write misses:\t" << l2_writemisses << endl;
+    cout << "k. L2 miss rate:\t\t" << l2_missrate << endl;
+    cout << "l. number of L2 writebacks:\t" << l2_writebacks << endl;
+    cout << "m. total memory traffic:\t" << total_mem_traffic << endl;
+
 
     return 0;
 }
