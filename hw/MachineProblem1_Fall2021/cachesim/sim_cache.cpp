@@ -85,15 +85,15 @@ class Cache
 
             for (int i = 0; i < cache.size(); i++)
             {
-                cout << "Set " << i << ":\tLRU count: " << lru_counter[i] << "\t";
+                cout << "Set " << i << ":\t\t";
 
                 for (int j = 0; j < cache[i].size(); j++)
                 {
                     cout << "V: " << cache[i][j].valid << ' ';
-                    cout << "C: " << cache[i][j].lru_count << ' ';
                     stringstream ss;
                     ss << hex << cache[i][j].tag;
-                    cout << "T: " << setw(6) << ss.str() << '\t';
+                    string dirty = cache[i][j].dirty ? " D" : "  ";
+                    cout << "T: " << setw(8) << ss.str() << dirty << '\t';
                 }
 
                 cout << endl;
@@ -121,7 +121,7 @@ class Cache
             tag = bit_address;
 
             // for both reads and writes
-            int first_invalid_index = -1;
+            int invalid_index = -1;
 
             // find available valid blocks with matching tag
             for (int i = 0; i < cache[index].size(); i++)
@@ -145,16 +145,17 @@ class Cache
                         // TODO: add other replacement policies
                     }
                 }
-                else if (first_invalid_index == -1)
+                else
                 {
-                    first_invalid_index = i;
+                    // maintain the latest invalid index in case it needs to be filled
+                    invalid_index = i;
                 }
             }
 
             // if there was a miss and an invalid index, write to it and make it valid
-            if (first_invalid_index != -1)
+            if (invalid_index != -1)
             {
-                cache[index][first_invalid_index] = Line(1, 1, tag, lru_counter[index]++);
+                cache[index][invalid_index] = Line(1, 1, tag, lru_counter[index]++);
             }
             else
             {
