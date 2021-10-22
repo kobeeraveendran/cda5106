@@ -352,6 +352,8 @@ int main(int argc, char *argv[])
 
     trace_file.close();
 
+    // TODO: refactor all this to track it within the cache class
+
     int total_mem_traffic = l1_readmisses + l1_writemisses + l1_writebacks + 
                              l2_readmisses + l2_writemisses + l2_writebacks;
 
@@ -368,13 +370,20 @@ int main(int argc, char *argv[])
     cout << "b. number of L1 read misses:\t" << l1_readmisses << endl;
     cout << "c. number of L1 writes:\t\t" << l1_writes << endl;
     cout << "d. number of L1 write misses:\t" << l1_writemisses << endl;
-    cout << "e. L1 miss rate:\t\t" << l1_missrate << endl;
+    cout << "e. L1 miss rate:\t\t" << fixed << setprecision(6) << l1_missrate << endl;
     cout << "f. number of L1 writebacks:\t" << l1_writebacks << endl;
     cout << "g. number of L2 reads:\t\t" << l2_reads << endl;
     cout << "h. number of L2 read misses:\t" << l2_readmisses << endl;
     cout << "i. number of L2 writes:\t\t" << l2_writes << endl;
     cout << "j. number of L2 write misses:\t" << l2_writemisses << endl;
-    cout << "k. L2 miss rate:\t\t" << l2_missrate << endl;
+    if (l2_size == 0)
+    {
+        cout << "k. L2 miss rate:\t\t0" << endl;
+    }
+    else
+    {
+        cout << "k. L2 miss rate:\t\t" << fixed << setprecision(6) << l2_missrate << endl;
+    }
     cout << "l. number of L2 writebacks:\t" << l2_writebacks << endl;
     cout << "m. total memory traffic:\t" << total_mem_traffic << endl;
 
