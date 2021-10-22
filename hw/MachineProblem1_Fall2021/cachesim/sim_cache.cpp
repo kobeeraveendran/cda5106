@@ -17,6 +17,8 @@
 
 using namespace std;
 
+int l1_writebacks = 0, l2_writebacks = 0;
+
 class Line
 {
     public:
@@ -43,13 +45,15 @@ class Cache
         int block_size, size, assoc, replacement, inclusion;
         int num_sets, tag_bits, index_bits, offset_bits;
         int tag_mask, index_mask, offset_mask;
+        int cache_level;
         vector<vector<Line>> cache;
         vector<int> lru_counter;
 
     public:
         
-        Cache(int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
+        Cache(int level, int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
         {
+            cache_level = level;
             block_size = b_size;
             size = cache_size;
             assoc = cache_assoc;
@@ -73,7 +77,7 @@ class Cache
             }
         }
 
-        void print_details(int cache_level)
+        void print_details()
         {
             // cout << endl << "CACHE DETAILS:" << endl;
             // cout << "Number of sets: " << num_sets << endl;
@@ -200,6 +204,14 @@ class Cache
                     {
                         // if dirty, we must first write-back to memory (or next level cache) before evicting
                         // TODO
+                        if (cache_level == 1)
+                        {
+                            l1_writebacks++;
+                        }
+                        else if (cache_level == 2)
+                        {
+                            l2_writebacks++;
+                        }
                     }
 
                     cache[index][min_index] = Line(1, 0, tag, lru_counter[index]++);
@@ -286,16 +298,16 @@ int main(int argc, char *argv[])
     cout << endl;
     cout << "trace file:\t\t" << trace_path << endl;
 
-    Cache l1(block_size, l1_size, l1_assoc, replacement, inclusion);
+    Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion);
 
     if (l2_size > 0)
     {
-        Cache l2(block_size, l2_size, l2_assoc, replacement, inclusion);
+        Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion);
     }
 
     // simulation results
-    int l1_reads = 0, l1_readmisses = 0, l1_writes = 0, l1_writemisses = 0, l1_writebacks = 0;
-    int l2_reads = 0, l2_readmisses = 0, l2_writes = 0, l2_writemisses = 0, l2_writebacks = 0;
+    int l1_reads = 0, l1_readmisses = 0, l1_writes = 0, l1_writemisses = 0;
+    int l2_reads = 0, l2_readmisses = 0, l2_writes = 0, l2_writemisses = 0;
 
     // read address sequence from file, line by line
     fstream trace_file;
@@ -335,7 +347,7 @@ int main(int argc, char *argv[])
             count++;
         }
 
-        l1.print_details(1);
+        l1.print_details();
     }
 
     trace_file.close();
