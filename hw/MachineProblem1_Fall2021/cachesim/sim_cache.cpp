@@ -17,8 +17,6 @@
 
 using namespace std;
 
-int l1_writebacks = 0, l2_writebacks = 0;
-
 class Line
 {
     public:
@@ -46,11 +44,25 @@ class Cache
         int num_sets, tag_bits, index_bits, offset_bits;
         int tag_mask, index_mask, offset_mask;
         int cache_level;
+
+        // simulation results
+        int reads = 0, read_misses = 0, writes = 0, write_misses = 0, writebacks = 0;
+
         vector<vector<Line>> cache;
         vector<int> lru_counter;
 
     public:
+        int total_mem_traffic;
         
+        // instantiant an instance of a cache for a specified cache level
+        /* 
+         * level (int): cache level (either L1 or L2); specified manually
+         * b_size (int): blocksize, a parameter specified on the commandline
+         * cache_size (int): total size of the cache, also specified on the commandline
+         * cache_assoc (int): associativity of the cache, specified on the commandline
+         * rep_pol (int): the replacement policy to use (0: LRU, 1: pseudo-LRU, 2: optimal); specified on the commandline
+         * inc_prop (int): which inclusion property to use (0: non-inclusive, 1: inclusive); specified on the commandline
+         */
         Cache(int level, int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
         {
             cache_level = level;
@@ -60,31 +72,31 @@ class Cache
             replacement = rep_pol;
             inclusion = inc_prop;
 
-            num_sets = size / (assoc * block_size);
-            index_bits = log2(num_sets);
-            offset_bits = log2(block_size);
-            tag_bits = 32 - index_bits - offset_bits;
-
-            offset_mask = pow(2, offset_bits) - 1;
-            index_mask = pow(2, index_bits) - 1;
-
-            cache.resize(num_sets);
-            lru_counter.resize(num_sets);
-
-            for (int i = 0; i < cache.size(); i++)
+            if (size > 0)
             {
-                cache[i].resize(assoc);
+                num_sets = size / (assoc * block_size);
+                index_bits = log2(num_sets);
+                offset_bits = log2(block_size);
+                tag_bits = 32 - index_bits - offset_bits;
+
+                offset_mask = pow(2, offset_bits) - 1;
+                index_mask = pow(2, index_bits) - 1;
+
+                cache.resize(num_sets);
+                lru_counter.resize(num_sets);
+
+                for (int i = 0; i < cache.size(); i++)
+                {
+                    cache[i].resize(assoc);
+                }
             }
         }
 
+        // print the cache's contents in the following format:
+        // Set n: <line 0 hex tag> <dirty?> ... <line m hex tag> <dirty?>
+        // where n is the current set number and m is the associativity of the cache
         void print_details()
         {
-            // cout << endl << "CACHE DETAILS:" << endl;
-            // cout << "Number of sets: " << num_sets << endl;
-            // cout << "Index bits: " << index_bits << endl;
-            // cout << "Block offset bits: " << offset_bits << endl;
-            // cout << "Tag bits: " << tag_bits << endl;
-
             cout << "===== L" << cache_level << " contents =====" << endl;
 
             for (int i = 0; i < cache.size(); i++)
@@ -93,7 +105,6 @@ class Cache
 
                 for (int j = 0; j < cache[i].size(); j++)
                 {
-                    // cout << "V: " << cache[i][j].valid << ' ';
                     stringstream ss;
                     ss << hex << cache[i][j].tag;
                     string dirty;
@@ -121,7 +132,10 @@ class Cache
             }
         }
 
-        int access(string address, string mode)
+        // attempt to read or write to this cache, handling misses and writebacks as necessary
+        // address (string): the full hex address from the address sequence
+        // mode (string): the access mode, either read (r) or write (w); also extracted from the address sequence
+        void access(string address, string mode)
         {
             int32_t bit_address = stoi(address, nullptr, 16);
             int offset, index, tag;
@@ -131,6 +145,8 @@ class Cache
             index = bit_address & index_mask;
             bit_address >>= index_bits;
             tag = bit_address;
+
+            if (mode == "w") writes++; else reads++;
 
             // for both reads and writes
             int invalid_index = -1;
@@ -159,7 +175,7 @@ class Cache
                         // TODO: add other replacement policies
 
                         // we had a hit
-                        return 0;
+                        return;
                     }
                 }
                 else if (invalid_index == -1)
@@ -204,14 +220,7 @@ class Cache
                     {
                         // if dirty, we must first write-back to memory (or next level cache) before evicting
                         // TODO
-                        if (cache_level == 1)
-                        {
-                            l1_writebacks++;
-                        }
-                        else if (cache_level == 2)
-                        {
-                            l2_writebacks++;
-                        }
+                        writebacks++;
                     }
 
                     cache[index][min_index] = Line(1, 0, tag, lru_counter[index]++);
@@ -227,7 +236,45 @@ class Cache
             }
 
             // we had a miss
-            return 1;
+            if (mode == "w") write_misses++; else read_misses++;
+
+            return;
+        }
+
+        // print the results of the simulation for this cache (depending on cache level)
+        void print_results()
+        {
+            float miss_rate = (float)(read_misses + write_misses) / (float)(reads + writes);
+            total_mem_traffic = read_misses + write_misses + writebacks;
+            
+            if (cache_level == 1)
+            {
+                cout << "a. number of L1 reads:\t\t" << reads << endl;
+                cout << "b. number of L1 read misses:\t" << read_misses << endl;
+                cout << "c. number of L1 writes:\t\t" << writes << endl;
+                cout << "d. number of L1 write misses:\t" << write_misses << endl;
+                cout << "e. L1 miss rate:\t\t" << fixed << setprecision(6) << miss_rate << endl;
+                cout << "f. number of L1 writebacks:\t" << writebacks << endl;
+            }
+            else
+            {
+                cout << "g. number of L2 reads:\t\t" << reads << endl;
+                cout << "h. number of L2 read misses:\t" << read_misses << endl;
+                cout << "i. number of L2 writes:\t\t" << writes << endl;
+                cout << "j. number of L2 write misses:\t" << write_misses << endl;
+                cout << "k. L2 miss rate:\t\t";
+
+                if (size == 0)
+                {
+                    cout << "0" << endl;
+                }
+                else
+                {
+                    cout << fixed << setprecision(6) << miss_rate << endl;
+                }
+
+                cout << "l. number of L2 writebacks:\t" << writebacks << endl;
+            }
         }
 };
 
@@ -257,11 +304,11 @@ int main(int argc, char *argv[])
     // ./sim_cache 16 1024 2 0 0 0 0 ../trace_files/gcc_trace.txt
 
     cout << "===== Simulator configuration =====" << endl;
-    cout << "BLOCKSIZE:\t\t" << block_size << endl;
-    cout << "L1_SIZE:\t\t" << l1_size << endl;
-    cout << "L1_ASSOC:\t\t" << l1_assoc << endl;
-    cout << "L2_SIZE:\t\t" << l2_size << endl;
-    cout << "L2_ASSOC:\t\t" << l2_assoc << endl;
+    cout << "BLOCKSIZE:\t\t\t" << block_size << endl;
+    cout << "L1_SIZE:\t\t\t" << l1_size << endl;
+    cout << "L1_ASSOC:\t\t\t" << l1_assoc << endl;
+    cout << "L2_SIZE:\t\t\t" << l2_size << endl;
+    cout << "L2_ASSOC:\t\t\t" << l2_assoc << endl;
     cout << "REPLACEMENT POLICY:\t";
 
     switch (replacement)
@@ -299,15 +346,7 @@ int main(int argc, char *argv[])
     cout << "trace file:\t\t" << trace_path << endl;
 
     Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion);
-
-    if (l2_size > 0)
-    {
-        Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion);
-    }
-
-    // simulation results
-    int l1_reads = 0, l1_readmisses = 0, l1_writes = 0, l1_writemisses = 0;
-    int l2_reads = 0, l2_readmisses = 0, l2_writes = 0, l2_writemisses = 0;
+    Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion);
 
     // read address sequence from file, line by line
     fstream trace_file;
@@ -331,61 +370,24 @@ int main(int argc, char *argv[])
                 mode = mode[mode.length() - 1];
             }
 
-            res = l1.access(address, mode);
-
-            if (mode == "w")
-            {
-                l1_writemisses += res;
-                l1_writes++;
-            }
-            else
-            {
-                l1_readmisses += res;
-                l1_reads++;
-            }
+            l1.access(address, mode);
 
             count++;
         }
 
         l1.print_details();
+        if (l2_size > 0)
+        {
+            l2.print_details();
+        }
     }
 
     trace_file.close();
 
-    // TODO: refactor all this to track it within the cache class
-
-    int total_mem_traffic = l1_readmisses + l1_writemisses + l1_writebacks + 
-                             l2_readmisses + l2_writemisses + l2_writebacks;
-
-    float l1_missrate = (float)(l1_readmisses + l1_writemisses) / (float)(l1_reads + l1_writes);
-    float l2_missrate = 0;
-    
-    if (l2_size > 0)
-    {
-        l2_missrate = (float)(l2_readmisses + l2_writemisses) / (float)(l2_reads + l2_writes);
-    }
-
     cout << "===== Simulation results (raw) =====" << endl;
-    cout << "a. number of L1 reads:\t\t" << l1_reads << endl;
-    cout << "b. number of L1 read misses:\t" << l1_readmisses << endl;
-    cout << "c. number of L1 writes:\t\t" << l1_writes << endl;
-    cout << "d. number of L1 write misses:\t" << l1_writemisses << endl;
-    cout << "e. L1 miss rate:\t\t" << fixed << setprecision(6) << l1_missrate << endl;
-    cout << "f. number of L1 writebacks:\t" << l1_writebacks << endl;
-    cout << "g. number of L2 reads:\t\t" << l2_reads << endl;
-    cout << "h. number of L2 read misses:\t" << l2_readmisses << endl;
-    cout << "i. number of L2 writes:\t\t" << l2_writes << endl;
-    cout << "j. number of L2 write misses:\t" << l2_writemisses << endl;
-    if (l2_size == 0)
-    {
-        cout << "k. L2 miss rate:\t\t0" << endl;
-    }
-    else
-    {
-        cout << "k. L2 miss rate:\t\t" << fixed << setprecision(6) << l2_missrate << endl;
-    }
-    cout << "l. number of L2 writebacks:\t" << l2_writebacks << endl;
-    cout << "m. total memory traffic:\t" << total_mem_traffic << endl;
+    l1.print_results();
+    l2.print_results();    
+    cout << "m. total memory traffic:\t" << l1.total_mem_traffic + l2.total_mem_traffic << endl;
 
 
     return 0;
