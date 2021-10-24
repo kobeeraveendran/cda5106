@@ -49,6 +49,7 @@ class Cache
 
         vector<vector<Line>> cache;
         vector<int> lru_counter;
+        vector<PseudoLRU> trees;
 
     public:
         int total_mem_traffic;
@@ -82,7 +83,18 @@ class Cache
                 index_mask = pow(2, index_bits) - 1;
 
                 cache.resize(num_sets);
-                lru_counter.resize(num_sets);
+                
+                if (replacement == 0)
+                {
+                    lru_counter.resize(num_sets);
+                }
+                else if (replacement == 1)
+                {
+                    for (int i = 0; i < num_sets; i++)
+                    {
+                        trees.push_back(PseudoLRU(assoc));
+                    }
+                }
 
                 for (int i = 0; i < cache.size(); i++)
                 {
@@ -122,13 +134,6 @@ class Cache
 
                 cout << endl;
             }
-
-            int count_sum = 0;
-
-            for (int i = 0; i < lru_counter.size(); i++)
-            {
-                count_sum += lru_counter[i];
-            }
         }
 
         // attempt to read or write to this cache, handling misses and writebacks as necessary
@@ -161,7 +166,7 @@ class Cache
                         // we have a hit; if writing, mark the block as dirty
                         if (mode == "w")
                         {
-                            cache[index][i].dirty = 1; //(mode == "r") ? 0 : 1;
+                            cache[index][i].dirty = 1;
                         }
 
                         // do replacement policy-related updates
@@ -172,6 +177,11 @@ class Cache
                         }
 
                         // TODO: add other replacement policies
+                        else if (replacement == 1)
+                        {
+                            // PLRU
+                            trees[index].access(i);
+                        }
 
                         // we had a hit
                         return;
