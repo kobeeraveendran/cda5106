@@ -247,7 +247,7 @@ class Cache
                     if (cache[index][min_index].dirty)
                     {
                         // if dirty, we must first write-back to memory (or next level cache) before evicting
-                        // TODO
+                        // TODO: handle eviction to next level of mem hierarchy
                         writebacks++;
                     }
 
@@ -258,8 +258,27 @@ class Cache
                         // if we wrote instead of read, dirty bit must be set
                         cache[index][min_index].dirty = 1;
                     }
+                }
+                else if (replacement == 1)
+                {
+                    // find the LRU block according to PLRU
+                    int lru = trees[index].replace();
 
-                    // TODO: handle eviction to next level of mem hierarchy
+                    if (cache[index][lru].dirty)
+                    {
+                        // write back to memory/next level cache
+                        writebacks++;
+
+                        // TODO: add writeback functionality
+                    }
+
+                    cache[index][lru] = Line(1, 0, tag);
+
+                    if (mode == "w")
+                    {
+                        // if writing, dirty bit must be set
+                        cache[index][lru].dirty = 1;
+                    }
                 }
             }
 
