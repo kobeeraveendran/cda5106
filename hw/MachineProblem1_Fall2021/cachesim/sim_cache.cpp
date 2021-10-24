@@ -27,6 +27,13 @@ class Line
             dirty = 0;
         }
 
+        Line(int v, int d, int t)
+        {
+            valid = v;
+            dirty = d;
+            tag = t;
+        }
+
         Line(int v, int d, int t, int c)
         {
             valid = v;
@@ -198,7 +205,19 @@ class Cache
             if (invalid_index != -1)
             {
                 // for write misses, valid = 1 and dirty = 1
-                cache[index][invalid_index] = Line(1, 1, tag, lru_counter[index]++);
+                // update LRU
+                if (replacement == 0)
+                {
+                    cache[index][invalid_index] = Line(1, 1, tag, lru_counter[index]++);
+                }
+
+                // update Pseudo-LRU
+                else if (replacement == 1)
+                {
+                    // since this is an access, update the tree bit array
+                    trees[index].access(invalid_index);
+                    cache[index][invalid_index] = Line(1, 1, tag);
+                }
 
                 // if reading instead, mem will be up-to-date, so dirty = 0
                 if (mode == "r")
