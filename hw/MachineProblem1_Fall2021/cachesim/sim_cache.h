@@ -20,6 +20,7 @@ class PseudoLRU
         int depth;
 
     public:
+
         PseudoLRU(int assoc)
         {
             tree_bits.resize(assoc);

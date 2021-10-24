@@ -83,7 +83,7 @@ class Cache
                 index_mask = pow(2, index_bits) - 1;
 
                 cache.resize(num_sets);
-                
+
                 if (replacement == 0)
                 {
                     lru_counter.resize(num_sets);
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
             break;
 
         case 1:
-            cout << "PLRU";
+            cout << "Pseudo-LRU";
             break;
 
         case 2:
