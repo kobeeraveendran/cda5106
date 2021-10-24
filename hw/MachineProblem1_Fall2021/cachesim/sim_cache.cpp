@@ -166,7 +166,7 @@ class Cache
                         // we have a hit; if writing, mark the block as dirty
                         if (mode == "w")
                         {
-                            cache[index][i].dirty = 1; //(mode == "r") ? 0 : 1;
+                            cache[index][i].dirty = 1;
                         }
 
                         // do replacement policy-related updates
