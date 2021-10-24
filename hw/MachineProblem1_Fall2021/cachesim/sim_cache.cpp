@@ -27,12 +27,12 @@ class Line
             dirty = 0;
         }
 
-        Line(int v, int d, int t, int c)
+        Line(int value, int dirty, int tag, int count)
         {
-            valid = v;
-            dirty = d;
-            tag = t;
-            lru_count = c;
+            valid = value;
+            dirty = dirty;
+            tag = tag;
+            lru_count = count;
         }
 };
 
@@ -49,6 +49,7 @@ class Cache
 
         vector<vector<Line>> cache;
         vector<int> lru_counter;
+        vector<PseudoLRU> trees;
 
     public:
         int total_mem_traffic;
@@ -82,7 +83,18 @@ class Cache
                 index_mask = pow(2, index_bits) - 1;
 
                 cache.resize(num_sets);
-                lru_counter.resize(num_sets);
+
+                if (replacement == 0)
+                {
+                    lru_counter.resize(num_sets);
+                }
+                else if (replacement == 1)
+                {
+                    for (int i = 0; i < num_sets; i++)
+                    {
+                        trees.push_back(PseudoLRU(assoc));
+                    }
+                }
 
                 for (int i = 0; i < cache.size(); i++)
                 {
@@ -121,13 +133,6 @@ class Cache
                 }
 
                 cout << endl;
-            }
-
-            int count_sum = 0;
-
-            for (int i = 0; i < lru_counter.size(); i++)
-            {
-                count_sum += lru_counter[i];
             }
         }
 
@@ -172,6 +177,11 @@ class Cache
                         }
 
                         // TODO: add other replacement policies
+                        else if (replacement == 1)
+                        {
+                            // PLRU
+                            trees[index].access(i);
+                        }
 
                         // we had a hit
                         return;
@@ -317,7 +327,7 @@ int main(int argc, char *argv[])
             break;
 
         case 1:
-            cout << "PLRU";
+            cout << "Pseudo-LRU";
             break;
 
         case 2:
