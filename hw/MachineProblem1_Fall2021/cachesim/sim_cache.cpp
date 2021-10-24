@@ -27,12 +27,12 @@ class Line
             dirty = 0;
         }
 
-        Line(int value, int dirty, int tag, int count)
+        Line(int v, int d, int t, int c)
         {
-            valid = value;
-            dirty = dirty;
-            tag = tag;
-            lru_count = count;
+            valid = v;
+            dirty = d;
+            tag = t;
+            lru_count = c;
         }
 };
 
