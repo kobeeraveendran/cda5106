@@ -329,6 +329,12 @@ class Cache
                         // TODO: add writeback functionality
                     }
 
+                    stringstream ss, ss1;
+                    ss << hex << cache[index][replacement_index].addr;
+                    ss1 << hex << bit_address;
+
+                    cout << "REPLACING BLOCK " << ss.str() << " WITH BLOCK " << ss1.str() << endl;
+
                     // replace the block with the new one
                     cache[index][replacement_index] = Line(1, 0, tag, bit_address);
 
