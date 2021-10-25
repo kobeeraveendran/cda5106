@@ -44747,16 +44747,16 @@ Set 29:		  200736 D	  3d81a3 D
 Set 30:		  200bb8  	  200190  	
 Set 31:		  3d819b D	  200191  	
 ===== Simulation results (raw) =====
-a. number of L1 reads:		70871
+a. number of L1 reads:		    70871
 b. number of L1 read misses:	24881
-c. number of L1 writes:		29129
+c. number of L1 writes:		    29129
 d. number of L1 write misses:	14751
-e. L1 miss rate:		0.396320
-f. number of L1 writebacks:	16937
-g. number of L2 reads:		0
+e. L1 miss rate:		        0.396320
+f. number of L1 writebacks:	    16937
+g. number of L2 reads:		    0
 h. number of L2 read misses:	0
-i. number of L2 writes:		0
+i. number of L2 writes:		    0
 j. number of L2 write misses:	0
-k. L2 miss rate:		0
-l. number of L2 writebacks:	0
-m. total memory traffic:	56569
+k. L2 miss rate:		        0
+l. number of L2 writebacks:	    0
+m. total memory traffic:	    56569
