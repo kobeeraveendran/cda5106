@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
     }
 
     cout << endl;
-    cout << "trace file:\t\t" << trace_path << endl;
+    cout << "trace_file:\t\t" << trace_path << endl;
 
     Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion);
     Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion);
