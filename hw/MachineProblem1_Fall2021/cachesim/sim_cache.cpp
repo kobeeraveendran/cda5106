@@ -253,7 +253,7 @@ class Cache
                         writebacks++;
                     }
 
-                    cache[index][min_index] = Line(1, 0, tag, lru_counter[index]++);
+                    cache[index][min_index] = Line(1, 0, tag, bit_address, lru_counter[index]++);
 
                     if (mode == "w")
                     {
