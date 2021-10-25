@@ -188,7 +188,6 @@ class Cache
                             cache[index][i].lru_count = lru_counter[index]++;
                         }
 
-                        // TODO: add other replacement policies
                         else if (replacement == 1)
                         {
                             // PLRU
@@ -333,7 +332,7 @@ class Cache
                     ss << hex << cache[index][replacement_index].addr;
                     ss1 << hex << bit_address;
 
-                    cout << "REPLACING BLOCK " << ss.str() << " WITH BLOCK " << ss1.str() << endl;
+                    // cout << "REPLACING BLOCK " << ss.str() << " WITH BLOCK " << ss1.str() << endl;
 
                     // replace the block with the new one
                     cache[index][replacement_index] = Line(1, 0, tag, bit_address);

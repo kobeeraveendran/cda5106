@@ -159,8 +159,8 @@ vector<int> preprocesses_trace(string filepath)
 // "predict the future" in the Belady optimal replacement algorithm by determining 
 // which block in the line will be least urgently needed in the future
 /*
- * query_address(int): the address we want to find t steps in the future
- * trace_index(int): our current progress through the access stream
+ * query_address(int): the address we want to find when searching in the future
+ * trace_index(int): our current progress through the access stream (the timestep t)
  * trace(vector<int>): the array of accesses from the preprocessing stage
  */
 int foresight(int query_address, int trace_index, vector<int> trace)
@@ -179,6 +179,6 @@ int foresight(int query_address, int trace_index, vector<int> trace)
     // otherwise, it was never used again, so it should be replaced
     stringstream ss;
     ss << hex << query_address;
-    cout << "QUERY ADDR: " << ss.str() << " at trace index: " << trace_index << endl;
+    // cout << "QUERY ADDR: " << ss.str() << " at trace index: " << trace_index << endl;
     return trace.size();
 };
