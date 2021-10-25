@@ -126,3 +126,44 @@ class PseudoLRU
             return mid;
         }
 };
+
+vector<int> preprocesses_trace(string filepath)
+{
+    vector<int> access_stream;
+    fstream trace_file;
+
+    trace_file.open(filepath, ios::in);
+
+    if (trace_file.is_open())
+    {
+        string file_line, mode, address;
+
+        while (trace_file >> mode >> address)
+        {
+            // in case there are extra chars in the front of the line
+            if (!isalpha(mode[0]))
+            {
+                mode = mode[mode.length() - 1];
+            }
+
+            int32_t bit_address = stoi(address, nullptr, 16);
+            access_stream.push_back(bit_address);
+        }
+    }
+
+    trace_file.close();
+
+    return access_stream;
+}
+
+// "predict the future" in the Belady optimal replacement algorithm by determining 
+// which block in the line will be least urgently needed in the future
+/*
+ * query_address(int): the address we want to find t steps in the future
+ * trace_index(int): our current progress through the access stream
+ * trace(vector<int>): the array of accesses from the preprocessing stage
+ */
+int foresight(int query_address, int trace_index, vector<int> trace)
+{
+    
+};

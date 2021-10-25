@@ -19,7 +19,7 @@ using namespace std;
 class Line
 {
     public:
-        int valid, dirty, tag, lru_count = 0;
+        int valid, dirty, tag, addr, lru_count = 0;
 
         Line()
         {
@@ -27,18 +27,20 @@ class Line
             dirty = 0;
         }
 
-        Line(int v, int d, int t)
+        Line(int v, int d, int t, int a)
         {
             valid = v;
             dirty = d;
             tag = t;
+            addr = a;
         }
 
-        Line(int v, int d, int t, int c)
+        Line(int v, int d, int t, int a, int c)
         {
             valid = v;
             dirty = d;
             tag = t;
+            addr = a;
             lru_count = c;
         }
 };
@@ -208,7 +210,7 @@ class Cache
                 // update LRU
                 if (replacement == 0)
                 {
-                    cache[index][invalid_index] = Line(1, 1, tag, lru_counter[index]++);
+                    cache[index][invalid_index] = Line(1, 1, tag, bit_address, lru_counter[index]++);
                 }
 
                 // update Pseudo-LRU
@@ -216,7 +218,7 @@ class Cache
                 {
                     // since this is an access, update the tree bit array
                     trees[index].access(invalid_index);
-                    cache[index][invalid_index] = Line(1, 1, tag);
+                    cache[index][invalid_index] = Line(1, 1, tag, bit_address);
                 }
 
                 // if reading instead, mem will be up-to-date, so dirty = 0
@@ -272,7 +274,7 @@ class Cache
                         // TODO: add writeback functionality
                     }
 
-                    cache[index][lru] = Line(1, 0, tag);
+                    cache[index][lru] = Line(1, 0, tag, bit_address);
 
                     if (mode == "w")
                     {
@@ -369,7 +371,7 @@ int main(int argc, char *argv[])
             break;
 
         case 2:
-            cout << "optimal";
+            cout << "Optimal";
             break;
 
         default:
@@ -394,6 +396,12 @@ int main(int argc, char *argv[])
 
     Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion);
     Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion);
+
+    if (replacement == 2)
+    {
+        // preprocess the trace files for optimal replacement
+        // vector<int> access_stream = preprocesses_trace(trace_path);
+    }
 
     // read address sequence from file, line by line
     fstream trace_file;
