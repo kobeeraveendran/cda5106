@@ -31,10 +31,12 @@ sim_cache: $(SIM_OBJ)
 	$(CC) $(CFLAGS)  -c $*.cc
 
 
-# type "make clean" to remove all .o files plus the sim_cache binary
+# type "make clean" to remove all .o files, the sim_cache binary, and 
+# the output diff'd against the validation output (from my test suite 
+# shell script)
 
 clean:
-	rm -f *.o sim_cache
+	rm -f *.o sim_cache output.txt
 
 
 # type "make clobber" to remove all .o files (leaves sim_cache binary)
