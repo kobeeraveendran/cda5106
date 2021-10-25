@@ -36,7 +36,7 @@ sim_cache: $(SIM_OBJ)
 # shell script)
 
 clean:
-	rm -f *.o sim_cache output.txt
+	rm -f *.o sim_cache
 
 
 # type "make clobber" to remove all .o files (leaves sim_cache binary)
