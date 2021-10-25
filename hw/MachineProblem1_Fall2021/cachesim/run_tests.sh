@@ -39,4 +39,4 @@ else
 fi
 
 # remove generated .o files, sim_cache binaries, and output.txt file
-rm -f *.o sim_cache output.txt
+rm -f *.o sim_cache

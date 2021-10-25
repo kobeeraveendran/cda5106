@@ -165,5 +165,17 @@ vector<int> preprocesses_trace(string filepath)
  */
 int foresight(int query_address, int trace_index, vector<int> trace)
 {
-    
+
+    // cout << "QUERY ADDRESS: " << query_address << endl;
+    // determine how many timesteps in the future this block is needed again
+    for (int i = trace_index; i < trace.size(); i++)
+    {
+        if (query_address == trace[i])
+        {
+            return i - trace_index;
+        }
+    }
+
+    // otherwise, it was never used again, so it should be replaced
+    return trace.size();
 };

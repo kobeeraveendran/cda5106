@@ -59,6 +59,7 @@ class Cache
         vector<vector<Line>> cache;
         vector<int> lru_counter;
         vector<PseudoLRU> trees;
+        vector<int> trace;
 
     public:
         int total_mem_traffic;
@@ -72,7 +73,7 @@ class Cache
          * rep_pol (int): the replacement policy to use (0: LRU, 1: pseudo-LRU, 2: optimal); specified on the commandline
          * inc_prop (int): which inclusion property to use (0: non-inclusive, 1: inclusive); specified on the commandline
          */
-        Cache(int level, int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop)
+        Cache(int level, int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop, vector<int> access_stream)
         {
             cache_level = level;
             block_size = b_size;
@@ -80,6 +81,7 @@ class Cache
             assoc = cache_assoc;
             replacement = rep_pol;
             inclusion = inc_prop;
+            trace = access_stream;
 
             if (size > 0)
             {
@@ -148,16 +150,17 @@ class Cache
         // attempt to read or write to this cache, handling misses and writebacks as necessary
         // address (string): the full hex address from the address sequence
         // mode (string): the access mode, either read (r) or write (w); also extracted from the address sequence
-        void access(string address, string mode)
+        void access(int32_t bit_address, string mode, int trace_index)
         {
-            int32_t bit_address = stoi(address, nullptr, 16);
             int offset, index, tag;
 
-            offset = bit_address & offset_mask;
-            bit_address >>= offset_bits;
-            index = bit_address & index_mask;
-            bit_address >>= index_bits;
-            tag = bit_address;
+            int32_t address_copy = bit_address;
+
+            offset = address_copy & offset_mask;
+            address_copy >>= offset_bits;
+            index = address_copy & index_mask;
+            address_copy >>= index_bits;
+            tag = address_copy;
 
             if (mode == "w") writes++; else reads++;
 
@@ -192,6 +195,9 @@ class Cache
                             trees[index].access(i);
                         }
 
+                        // no changes necessary for optimal (only consult oracle 
+                        // for foresight on evictions)
+
                         // we had a hit
                         return;
                     }
@@ -218,6 +224,12 @@ class Cache
                 {
                     // since this is an access, update the tree bit array
                     trees[index].access(invalid_index);
+                    cache[index][invalid_index] = Line(1, 1, tag, bit_address);
+                }
+
+                // no updates necessary for optimal, just write to the block
+                else
+                {
                     cache[index][invalid_index] = Line(1, 1, tag, bit_address);
                 }
 
@@ -261,6 +273,7 @@ class Cache
                         cache[index][min_index].dirty = 1;
                     }
                 }
+
                 else if (replacement == 1)
                 {
                     // find the LRU block according to PLRU
@@ -280,6 +293,49 @@ class Cache
                     {
                         // if writing, dirty bit must be set
                         cache[index][lru].dirty = 1;
+                    }
+                }
+
+                else if (replacement == 2)
+                {
+                    // optimal - use foresight to determine the block to replace
+                    // and replace the leftmost one in case multiple are not reused
+                    vector<int> offsets;
+                    int replacement_index = 0, max_offset = -1;
+
+                    for (int i = 0; i < cache[index].size(); i++)
+                    {
+                        // find the offset for this block
+                        offsets.push_back(foresight(cache[index][i].addr, trace_index, trace));
+                    }
+
+                    // of all the offsets, find the maximum value; if any are equal 
+                    // to the size of the trace, they won't be used again so use the 
+                    // leftmost such block (in case there are ties)
+                    for (int i = 0; i < offsets.size(); i++)
+                    {
+                        if (offsets[i] > max_offset)
+                        {
+                            max_offset = offsets[i];
+                            replacement_index = i;
+                        }
+                    }
+
+                    // if dirty, we must writeback
+                    if (cache[index][replacement_index].dirty)
+                    {
+                        writebacks++;
+
+                        // TODO: add writeback functionality
+                    }
+
+                    // replace the block with the new one
+                    cache[index][replacement_index] = Line(1, 0, tag, bit_address);
+
+                    if (mode == "w")
+                    {
+                        // if writing, set dirty bit
+                        cache[index][replacement_index].dirty = 1;
                     }
                 }
             }
@@ -393,15 +449,12 @@ int main(int argc, char *argv[])
 
     cout << endl;
     cout << "trace_file:\t\t" << trace_path << endl;
+    
+    // preprocess the trace files for optimal replacement pol
+    vector<int> access_stream = preprocesses_trace(trace_path);
 
-    Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion);
-    Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion);
-
-    if (replacement == 2)
-    {
-        // preprocess the trace files for optimal replacement
-        // vector<int> access_stream = preprocesses_trace(trace_path);
-    }
+    Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion, access_stream);
+    Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion, access_stream);
 
     // read address sequence from file, line by line
     fstream trace_file;
@@ -425,7 +478,7 @@ int main(int argc, char *argv[])
                 mode = mode[mode.length() - 1];
             }
 
-            l1.access(address, mode);
+            l1.access(stoi(address, nullptr, 16), mode, count);
 
             count++;
         }
