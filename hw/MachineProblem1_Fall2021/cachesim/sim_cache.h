@@ -177,8 +177,8 @@ int foresight(int query_address, int trace_index, vector<int> trace)
     }
 
     // otherwise, it was never used again, so it should be replaced
-    stringstream ss;
-    ss << hex << query_address;
+    // stringstream ss;
+    // ss << hex << query_address;
     // cout << "QUERY ADDR: " << ss.str() << " at trace index: " << trace_index << endl;
     return trace.size();
 };

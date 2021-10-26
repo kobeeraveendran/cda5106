@@ -16,6 +16,8 @@
 
 using namespace std;
 
+void readwritethrough(int bit_address, string mode, int trace_index, int level);
+
 class Line
 {
     public:
@@ -48,7 +50,7 @@ class Line
 class Cache
 {
     private:
-        int block_size, size, assoc, replacement, inclusion;
+        int block_size, assoc, replacement, inclusion;
         int num_sets, tag_bits, index_bits, offset_bits;
         int tag_mask, index_mask, offset_mask;
         int cache_level;
@@ -62,9 +64,11 @@ class Cache
         vector<int> trace;
 
     public:
-        int total_mem_traffic;
+        int size, total_mem_traffic;
         
-        // instantiant an instance of a cache for a specified cache level
+        Cache(){}
+
+        // instantiate an instance of a cache for a specified cache level
         /* 
          * level (int): cache level (either L1 or L2); specified manually
          * b_size (int): blocksize, a parameter specified on the commandline
@@ -150,6 +154,7 @@ class Cache
         // attempt to read or write to this cache, handling misses and writebacks as necessary
         // address (string): the full hex address from the address sequence
         // mode (string): the access mode, either read (r) or write (w); also extracted from the address sequence
+        // trace_index(int): the current number of addresses in the addr. sequence (trace) we have progressed through
         void access(int32_t bit_address, string mode, int trace_index)
         {
             int offset, index, tag;
@@ -198,6 +203,21 @@ class Cache
                         // for foresight on evictions)
 
                         // we had a hit
+                        // if (cache_level == 1)
+                        // {
+                        //     // we have a hit in L1, just return to the core
+                        //     return;
+                        // }
+                        // else if (cache_level == 2)
+                        // {
+                        //     // hit in L2
+                        //     // if inclusive, we update L1 with this block
+                        //     if (inclusion)
+                        //     {
+                        //         l1.access(bit_address, mode, trace_index);
+                        //     }
+                        //     // if non-inclusive, we don't have to do anything else
+                        // }
                         return;
                     }
                 }
@@ -232,6 +252,13 @@ class Cache
                     cache[index][invalid_index] = Line(1, 1, tag, bit_address);
                 }
 
+                // for both non-inclusive and inclusive, issue a read to the next level 
+                // cache (if not there already)
+                if (cache_level == 1)
+                {
+                    readwritethrough(bit_address, "r", trace_index, 2);
+                }
+
                 // if reading instead, mem will be up-to-date, so dirty = 0
                 if (mode == "r")
                 {
@@ -262,9 +289,28 @@ class Cache
                         // if dirty, we must first write-back to memory (or next level cache) before evicting
                         // TODO: handle eviction to next level of mem hierarchy
                         writebacks++;
+
+                        if (inclusion)
+                        {
+                            // handle inclusive cache stuff
+                        }
+                        else
+                        {
+                            if (cache_level == 1)
+                            {
+                                // write the victim block to L2 (if it exists)
+                                readwritethrough(cache[index][min_index].addr, "w", trace_index, 2);
+                            }
+                        }
                     }
 
                     cache[index][min_index] = Line(1, 0, tag, bit_address, lru_counter[index]++);
+
+                    // step 2 of allocating a block
+                    if (cache_level == 1)
+                    {
+                        readwritethrough(bit_address, "r", trace_index, 2);
+                    }
 
                     if (mode == "w")
                     {
@@ -328,9 +374,9 @@ class Cache
                         // TODO: add writeback functionality
                     }
 
-                    stringstream ss, ss1;
-                    ss << hex << cache[index][replacement_index].addr;
-                    ss1 << hex << bit_address;
+                    // stringstream ss, ss1;
+                    // ss << hex << cache[index][replacement_index].addr;
+                    // ss1 << hex << bit_address;
 
                     // cout << "REPLACING BLOCK " << ss.str() << " WITH BLOCK " << ss1.str() << endl;
 
@@ -380,6 +426,7 @@ class Cache
                 }
                 else
                 {
+                    miss_rate = (float)(read_misses) / (float)(reads);
                     cout << fixed << setprecision(6) << miss_rate << endl;
                 }
 
@@ -387,6 +434,17 @@ class Cache
             }
         }
 };
+
+Cache l1(0, 0, 0, 0, 0, 0, {0});
+Cache l2(0, 0, 0, 0, 0, 0, {0});
+
+void readwritethrough(int bit_address, string mode, int trace_index, int level)
+{
+    if (level == 2 && l2.size > 0)
+    {
+        l2.access(bit_address, mode, trace_index);
+    }
+}
 
 // commandline args:
 /* 
@@ -458,8 +516,8 @@ int main(int argc, char *argv[])
     // preprocess the trace files for optimal replacement pol
     vector<int> access_stream = preprocesses_trace(trace_path);
 
-    Cache l1(1, block_size, l1_size, l1_assoc, replacement, inclusion, access_stream);
-    Cache l2(2, block_size, l2_size, l2_assoc, replacement, inclusion, access_stream);
+    l1 = Cache(1, block_size, l1_size, l1_assoc, replacement, inclusion, access_stream);
+    l2 = Cache(2, block_size, l2_size, l2_assoc, replacement, inclusion, access_stream);
 
     // read address sequence from file, line by line
     fstream trace_file;
@@ -499,8 +557,15 @@ int main(int argc, char *argv[])
 
     cout << "===== Simulation results (raw) =====" << endl;
     l1.print_results();
-    l2.print_results();    
-    cout << "m. total memory traffic:\t" << l1.total_mem_traffic + l2.total_mem_traffic << endl;
+    l2.print_results();
+    if (l2_size > 0)
+    {
+        cout << "m. total memory traffic:\t" << l2.total_mem_traffic << endl;
+    }
+    else
+    {
+        cout << "m. total memory traffic:\t" << l1.total_mem_traffic << endl;
+    }
 
 
     return 0;
