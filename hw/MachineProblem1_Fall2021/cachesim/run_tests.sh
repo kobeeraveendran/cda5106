@@ -56,5 +56,14 @@ else
     echo "Validation 5: PASS"
 fi
 
+./sim_cache 16 1024 2 8192 4 0 1 gcc_trace.txt > output.txt
+DIFF=$(diff -iw output.txt ../validation_runs/validation6.txt)
+if [[ -n $DIFF ]]
+then
+    echo "Validation 6: FAIL"
+else
+    echo "Validation 6: PASS"
+fi
+
 # remove generated .o files, sim_cache binaries, and output.txt file
 rm -f *.o sim_cache

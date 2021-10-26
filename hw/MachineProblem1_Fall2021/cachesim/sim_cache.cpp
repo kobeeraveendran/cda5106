@@ -16,7 +16,7 @@
 
 using namespace std;
 
-void readwritethrough(int bit_address, string mode, int trace_index, int level);
+void external_cache_access(int bit_address, string mode, int trace_index, int level);
 
 class Line
 {
@@ -50,22 +50,24 @@ class Line
 class Cache
 {
     private:
-        int block_size, assoc, replacement, inclusion;
-        int num_sets, tag_bits, index_bits, offset_bits;
-        int tag_mask, index_mask, offset_mask;
         int cache_level;
 
         // simulation results
         int reads = 0, read_misses = 0, writes = 0, write_misses = 0, writebacks = 0;
 
-        vector<vector<Line>> cache;
+        
         vector<int> lru_counter;
         vector<PseudoLRU> trees;
         vector<int> trace;
 
     public:
-        int size, total_mem_traffic;
+        int size, total_mem_traffic = 0;
+        int block_size, assoc, replacement, inclusion;
+        int num_sets, tag_bits, index_bits, offset_bits;
+        int tag_mask, index_mask, offset_mask;
         
+        vector<vector<Line>> cache;
+
         Cache(){}
 
         // instantiate an instance of a cache for a specified cache level
@@ -256,7 +258,7 @@ class Cache
                 // cache (if not there already)
                 if (cache_level == 1)
                 {
-                    readwritethrough(bit_address, "r", trace_index, 2);
+                    external_cache_access(bit_address, "r", trace_index, 2);
                 }
 
                 // if reading instead, mem will be up-to-date, so dirty = 0
@@ -290,17 +292,15 @@ class Cache
                         // TODO: handle eviction to next level of mem hierarchy
                         writebacks++;
 
-                        if (inclusion)
+                        if (cache_level == 1)
                         {
-                            // handle inclusive cache stuff
+                            // write the victim block to L2 (if it exists) - step 1 of allocation
+                            external_cache_access(cache[index][min_index].addr, "w", trace_index, 2);
                         }
-                        else
+
+                        if (cache_level == 2 && inclusion)
                         {
-                            if (cache_level == 1)
-                            {
-                                // write the victim block to L2 (if it exists)
-                                readwritethrough(cache[index][min_index].addr, "w", trace_index, 2);
-                            }
+                            external_cache_access(cache[index][min_index].addr, "w", trace_index, 1);
                         }
                     }
 
@@ -309,7 +309,7 @@ class Cache
                     // step 2 of allocating a block
                     if (cache_level == 1)
                     {
-                        readwritethrough(bit_address, "r", trace_index, 2);
+                        external_cache_access(bit_address, "r", trace_index, 2);
                     }
 
                     if (mode == "w")
@@ -330,16 +330,18 @@ class Cache
                         writebacks++;
 
                         // TODO: add writeback functionality
-                        if (inclusion)
+                        
+                        
+                        // step 1 of the block allocation process
+                        if (cache_level == 1)
                         {
-                            // handle inclusive cache stuff
+                            external_cache_access(cache[index][lru].addr, "w", trace_index, 2);
                         }
-                        else
+
+                        // handle inclusive cache stuff if this is L2
+                        if (cache_level == 2 && inclusion)
                         {
-                            if (cache_level == 1)
-                            {
-                                readwritethrough(cache[index][lru].addr, "w", trace_index, 2);
-                            }
+                            external_cache_access(cache[index][lru].addr, "w", trace_index, 1);
                         }
                     }
 
@@ -348,7 +350,7 @@ class Cache
                     // step 2 of block allocation
                     if (cache_level == 1)
                     {
-                        readwritethrough(bit_address, "r", trace_index, 2);
+                        external_cache_access(bit_address, "r", trace_index, 2);
                     }
 
                     if (mode == "w")
@@ -389,6 +391,16 @@ class Cache
                         writebacks++;
 
                         // TODO: add writeback functionality
+                        if (cache_level == 1)
+                        {
+                            // write the victim block to L2 (if it exists) - step 1 of allocation
+                            external_cache_access(cache[index][replacement_index].addr, "w", trace_index, 2);
+                        }
+
+                        if (cache_level == 2 && inclusion)
+                        {
+                            external_cache_access(cache[index][replacement_index].addr, "w", trace_index, 1);
+                        }
                     }
 
                     // stringstream ss, ss1;
@@ -418,7 +430,7 @@ class Cache
         void print_results()
         {
             float miss_rate = (float)(read_misses + write_misses) / (float)(reads + writes);
-            total_mem_traffic = read_misses + write_misses + writebacks;
+            total_mem_traffic += read_misses + write_misses + writebacks;
             
             if (cache_level == 1)
             {
@@ -455,12 +467,56 @@ class Cache
 Cache l1(0, 0, 0, 0, 0, 0, {0});
 Cache l2(0, 0, 0, 0, 0, 0, {0});
 
-void readwritethrough(int bit_address, string mode, int trace_index, int level)
+// Wrapper method for cache access that enables accessing another cache within 
+// one (i.e. writing back to L2 within L1)
+/*
+ * bit_address (int): the full hex address from the address sequence/evicted block, in decimal form
+ * mode (string): either "r" (read) or "w" (write); only applicable when writing back to L2
+ * trace_index (int): index of the address we're processing in the address sequence; only for optimal replacement pol
+ * level (int): which cache level we are trying to access; 2 for L2 (acc. from L1), 1 for accessing L1 from L2
+ */
+void external_cache_access(int bit_address, string mode, int trace_index, int level)
 {
     if (level == 2 && l2.size > 0)
     {
         l2.access(bit_address, mode, trace_index);
     }
+    else if (level == 1)
+    {
+        int offset, index, tag;
+        
+        offset = bit_address & l1.offset_mask;
+        bit_address >>= l1.offset_bits;
+        index = bit_address & l1.index_mask;
+        bit_address >>= l1.index_bits;
+        tag = bit_address;
+
+        // find the block in the L1 cache where it's supposed to be
+        for (int i = 0; i < l1.cache[index].size(); i++)
+        {
+            if (l1.cache[index][i].valid)
+            {
+                // compare tags
+                if (l1.cache[index][i].tag == tag)
+                {
+                    // allow this block to be replaced later on by marking it invalid
+                    l1.cache[index][i].valid = 0;
+
+                    // also, if it's dirty, write it to main memory
+                    if (l1.cache[index][i].dirty)
+                    {
+                        // cout << "BEFORE: " << l2.total_mem_traffic << endl;
+                        l2.total_mem_traffic++;
+                        // cout << "AFTER: " << l2.total_mem_traffic << endl;
+                    }
+
+                    return;
+                }
+            }
+        }
+    }
+
+    return;
 }
 
 // commandline args:
