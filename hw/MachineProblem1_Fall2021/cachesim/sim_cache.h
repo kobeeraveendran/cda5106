@@ -62,15 +62,6 @@ class PseudoLRU
                     j = 2 * j + 1;
                 }
             }
-
-            // cout << "TREE BITS AFTER ACCESS TO INDEX " << index << ": ";
-
-            // for (int i = 0; i < tree_bits.size(); i++)
-            // {
-            //     cout << tree_bits[i];
-            // }
-
-            // cout << endl;
         }
 
         int replace()
@@ -79,15 +70,6 @@ class PseudoLRU
             int j = 0;
             // for finding the LRU index in the cache set
             int low = 0, high = set_size - 1, mid;
-
-            // cout << "INITIAL TREE BITS BEFORE REPLACEMENT: ";
-
-            // for (int i = 0; i < tree_bits.size(); i++)
-            // {
-            //     cout << tree_bits[i];
-            // }
-
-            // cout << endl;
 
             for (int i = 0; i < depth; i++)
             {
@@ -113,15 +95,6 @@ class PseudoLRU
                     mid = low;
                 }
             }
-
-            // cout << "TREE BITS AFTER REPLACEMENT: ";
-
-            // for (int i = 0; i < tree_bits.size(); i++)
-            // {
-            //     cout << tree_bits[i];
-            // }
-
-            // cout << endl << "Index to be evicted: " << mid << endl;
 
             return mid;
         }

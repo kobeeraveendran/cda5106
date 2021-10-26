@@ -78,6 +78,7 @@ class Cache
          * cache_assoc (int): associativity of the cache, specified on the commandline
          * rep_pol (int): the replacement policy to use (0: LRU, 1: pseudo-LRU, 2: optimal); specified on the commandline
          * inc_prop (int): which inclusion property to use (0: non-inclusive, 1: inclusive); specified on the commandline
+         * access_stream (vector<int>): preprocessed access stream from the trace file (all hexstring addrs. converted to int)
          */
         Cache(int level, int b_size, int cache_size, int cache_assoc, int rep_pol, int inc_prop, vector<int> access_stream)
         {
@@ -205,21 +206,6 @@ class Cache
                         // for foresight on evictions)
 
                         // we had a hit
-                        // if (cache_level == 1)
-                        // {
-                        //     // we have a hit in L1, just return to the core
-                        //     return;
-                        // }
-                        // else if (cache_level == 2)
-                        // {
-                        //     // hit in L2
-                        //     // if inclusive, we update L1 with this block
-                        //     if (inclusion)
-                        //     {
-                        //         l1.access(bit_address, mode, trace_index);
-                        //     }
-                        //     // if non-inclusive, we don't have to do anything else
-                        // }
                         return;
                     }
                 }
@@ -269,6 +255,8 @@ class Cache
             }
             else
             {
+                // TODO: refactor all this (duplicated code here and there)
+
                 // if there were no invalid indices, evict the block as determined by the 
                 // replacement policy
                 if (replacement == 0)
@@ -289,7 +277,6 @@ class Cache
                     if (cache[index][min_index].dirty)
                     {
                         // if dirty, we must first write-back to memory (or next level cache) before evicting
-                        // TODO: handle eviction to next level of mem hierarchy
                         writebacks++;
 
                         if (cache_level == 1)
@@ -298,6 +285,7 @@ class Cache
                             external_cache_access(cache[index][min_index].addr, "w", trace_index, 2);
                         }
 
+                        // for inclusive outer caches only
                         if (cache_level == 2 && inclusion)
                         {
                             external_cache_access(cache[index][min_index].addr, "w", trace_index, 1);
@@ -390,7 +378,6 @@ class Cache
                     {
                         writebacks++;
 
-                        // TODO: add writeback functionality
                         if (cache_level == 1)
                         {
                             // write the victim block to L2 (if it exists) - step 1 of allocation
@@ -505,9 +492,7 @@ void external_cache_access(int bit_address, string mode, int trace_index, int le
                     // also, if it's dirty, write it to main memory
                     if (l1.cache[index][i].dirty)
                     {
-                        // cout << "BEFORE: " << l2.total_mem_traffic << endl;
                         l2.total_mem_traffic++;
-                        // cout << "AFTER: " << l2.total_mem_traffic << endl;
                     }
 
                     return;

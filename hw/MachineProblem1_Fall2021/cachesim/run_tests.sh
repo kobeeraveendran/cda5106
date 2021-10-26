@@ -65,5 +65,14 @@ else
     echo "Validation 6: PASS"
 fi
 
+./sim_cache 16 1024 1 8192 4 0 1 compress_trace.txt > output.txt
+DIFF=$(diff -iw output.txt ../validation_runs/validation7.txt)
+if [[ -n $DIFF ]]
+then
+    echo "Validation 7: FAIL"
+else
+    echo "Validation 7: PASS"
+fi
+
 # remove generated .o files, sim_cache binaries, and output.txt file
 rm -f *.o sim_cache
