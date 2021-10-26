@@ -330,9 +330,26 @@ class Cache
                         writebacks++;
 
                         // TODO: add writeback functionality
+                        if (inclusion)
+                        {
+                            // handle inclusive cache stuff
+                        }
+                        else
+                        {
+                            if (cache_level == 1)
+                            {
+                                readwritethrough(cache[index][lru].addr, "w", trace_index, 2);
+                            }
+                        }
                     }
 
                     cache[index][lru] = Line(1, 0, tag, bit_address);
+
+                    // step 2 of block allocation
+                    if (cache_level == 1)
+                    {
+                        readwritethrough(bit_address, "r", trace_index, 2);
+                    }
 
                     if (mode == "w")
                     {
