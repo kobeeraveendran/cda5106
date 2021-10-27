@@ -19,6 +19,9 @@ using namespace std;
 void external_cache_access(int bit_address, string mode, int trace_index, int level);
 vector<int> access_stream_l1;
 vector<int> access_stream_l2;
+int silent = 0;
+
+fstream logfile;
 
 // vector<int> extract_fields(int bit_address, int size, int block_size, int assoc)
 // {
@@ -391,34 +394,58 @@ class Cache
             float miss_rate = (float)(read_misses + write_misses) / (float)(reads + writes);
             total_mem_traffic += read_misses + write_misses + writebacks;
             
-            if (cache_level == 1)
+            // for arrangements of output, see my python script
+            if (cache_level == 1 && silent != 0)
             {
-                cout << "a. number of L1 reads:\t\t" << reads << endl;
-                cout << "b. number of L1 read misses:\t" << read_misses << endl;
-                cout << "c. number of L1 writes:\t\t" << writes << endl;
-                cout << "d. number of L1 write misses:\t" << write_misses << endl;
-                cout << "e. L1 miss rate:\t\t" << fixed << setprecision(6) << miss_rate << endl;
-                cout << "f. number of L1 writebacks:\t" << writebacks << endl;
-            }
-            else
-            {
-                cout << "g. number of L2 reads:\t\t" << reads << endl;
-                cout << "h. number of L2 read misses:\t" << read_misses << endl;
-                cout << "i. number of L2 writes:\t\t" << writes << endl;
-                cout << "j. number of L2 write misses:\t" << write_misses << endl;
-                cout << "k. L2 miss rate:\t\t";
+                logfile.open("graph_logs/output.csv", ios::app);
 
-                if (size == 0)
+                if (silent == 1)
                 {
-                    cout << "0" << endl;
+                    // graph #1: L1 MR and assoc. vs size
+                    logfile << miss_rate << endl;
+                }
+                else if (silent >= 2 && silent <= 4)
+                {
+                    // graphs 2, 3, and 4 (deal with AAT)
+                    // requires some postprocessing on the python side using 
+                    // CACTI table values and these values
+                    logfile << reads << "," << read_misses << "," << writes << "," << write_misses << endl;
+                }
+
+                logfile.close();
+            }
+
+            if (!silent)
+            {
+                if (cache_level == 1)
+                {
+                    cout << "a. number of L1 reads:\t\t" << reads << endl;
+                    cout << "b. number of L1 read misses:\t" << read_misses << endl;
+                    cout << "c. number of L1 writes:\t\t" << writes << endl;
+                    cout << "d. number of L1 write misses:\t" << write_misses << endl;
+                    cout << "e. L1 miss rate:\t\t" << fixed << setprecision(6) << miss_rate << endl;
+                    cout << "f. number of L1 writebacks:\t" << writebacks << endl;
                 }
                 else
                 {
-                    miss_rate = (float)(read_misses) / (float)(reads);
-                    cout << fixed << setprecision(6) << miss_rate << endl;
-                }
+                    cout << "g. number of L2 reads:\t\t" << reads << endl;
+                    cout << "h. number of L2 read misses:\t" << read_misses << endl;
+                    cout << "i. number of L2 writes:\t\t" << writes << endl;
+                    cout << "j. number of L2 write misses:\t" << write_misses << endl;
+                    cout << "k. L2 miss rate:\t\t";
 
-                cout << "l. number of L2 writebacks:\t" << writebacks << endl;
+                    if (size == 0)
+                    {
+                        cout << "0" << endl;
+                    }
+                    else
+                    {
+                        miss_rate = (float)(read_misses) / (float)(reads);
+                        cout << fixed << setprecision(6) << miss_rate << endl;
+                    }
+
+                    cout << "l. number of L2 writebacks:\t" << writebacks << endl;
+                }
             }
         }
 };
@@ -486,6 +513,12 @@ void external_cache_access(int bit_address, string mode, int trace_index, int le
  * REPLACEMENT_POLICY: int (0: LRU, 1: PLRU, 2: optimal)
  * INCLUSION_PROPERTY: int (0: non-inclusive, 1: inclusive)
  * trace_file: string (trace file path with extension)
+ * silent: int; whether to print full simulation results (0/don't specify), or print
+ *         results needed for the report graphs (to be fed into my python script):
+ *         (1) - graph #1 (L1 MR & assoc. vs. log2(SIZE))
+ *         (2) - graph #2 (same as graph #1 but with AAT instead of L1 MR)
+ *         (3) - graph #3 (AAT and replacement policy vs. log2(SIZE))
+ *         (4) - graph #4 (AAT and inclusion policy vs. log2(SIZE))
  */
 int main(int argc, char *argv[])
 {
@@ -497,59 +530,70 @@ int main(int argc, char *argv[])
     int replacement = stoi(argv[6]);
     int inclusion = stoi(argv[7]);
     string trace_path = argv[8];
+    
+    if (argc > 9)
+    {
+        silent = stoi(argv[9]);
+    }
 
     // sample run cmd:
     // ./sim_cache 16 1024 2 0 0 0 0 ../trace_files/gcc_trace.txt
 
-    cout << "===== Simulator configuration =====" << endl;
-    cout << "BLOCKSIZE:\t\t\t" << block_size << endl;
-    cout << "L1_SIZE:\t\t\t" << l1_size << endl;
-    cout << "L1_ASSOC:\t\t\t" << l1_assoc << endl;
-    cout << "L2_SIZE:\t\t\t" << l2_size << endl;
-    cout << "L2_ASSOC:\t\t\t" << l2_assoc << endl;
-    cout << "REPLACEMENT POLICY:\t";
-
-    switch (replacement)
+    if (!silent)
     {
-        case 0:
-            cout << "LRU";
-            break;
+        cout << "===== Simulator configuration =====" << endl;
+        cout << "BLOCKSIZE:\t\t\t" << block_size << endl;
+        cout << "L1_SIZE:\t\t\t" << l1_size << endl;
+        cout << "L1_ASSOC:\t\t\t" << l1_assoc << endl;
+        cout << "L2_SIZE:\t\t\t" << l2_size << endl;
+        cout << "L2_ASSOC:\t\t\t" << l2_assoc << endl;
+        cout << "REPLACEMENT POLICY:\t";
 
-        case 1:
-            cout << "Pseudo-LRU";
-            break;
+        switch (replacement)
+        {
+            case 0:
+                cout << "LRU";
+                break;
 
-        case 2:
-            cout << "Optimal";
-            break;
+            case 1:
+                cout << "Pseudo-LRU";
+                break;
 
-        default:
-            cout << "LRU";
-            break;
+            case 2:
+                cout << "Optimal";
+                break;
+
+            default:
+                cout << "LRU";
+                break;
+        }
+
+        cout << endl;
+        cout << "INCLUSION PROPERTY:\t";
+
+        if (inclusion)
+        {
+            cout << "inclusive";
+        }
+        else
+        {
+            cout << "non-inclusive";
+        }
+
+        cout << endl;
+        cout << "trace_file:\t\t" << trace_path << endl;
     }
-
-    cout << endl;
-    cout << "INCLUSION PROPERTY:\t";
-
-    if (inclusion)
-    {
-        cout << "inclusive";
-    }
-    else
-    {
-        cout << "non-inclusive";
-    }
-
-    cout << endl;
-    cout << "trace_file:\t\t" << trace_path << endl;
     
     // preprocess the trace files for optimal replacement pol
     // access_stream_l1 = preprocesses_trace(trace_path, log2(block_size) + log2(l1_size / (block_size * l1_assoc)));
-    access_stream_l1 = preprocesses_trace(trace_path, 0);
-    if (l2_size > 0)
+    if (replacement == 2)
     {
-        // access_stream_l2 = preprocesses_trace(trace_path, log2(block_size) + log2(l2_size / (block_size * l2_assoc)));
-        access_stream_l2 = preprocesses_trace(trace_path, 0);
+        access_stream_l1 = preprocesses_trace(trace_path, 0);
+        if (l2_size > 0)
+        {
+            // access_stream_l2 = preprocesses_trace(trace_path, log2(block_size) + log2(l2_size / (block_size * l2_assoc)));
+            access_stream_l2 = preprocesses_trace(trace_path, 0);
+        }
     }
 
     l1 = Cache(1, block_size, l1_size, l1_assoc, replacement, inclusion, access_stream_l1);
@@ -581,27 +625,37 @@ int main(int argc, char *argv[])
             count++;
         }
 
-        l1.print_details();
-        if (l2_size > 0)
+        if (!silent)
         {
-            l2.print_details();
+            l1.print_details();
+            if (l2_size > 0)
+            {
+                l2.print_details();
+            }
         }
     }
 
     trace_file.close();
 
-    cout << "===== Simulation results (raw) =====" << endl;
-    l1.print_results();
-    l2.print_results();
-    if (l2_size > 0)
+    if (!silent)
     {
-        cout << "m. total memory traffic:\t" << l2.total_mem_traffic << endl;
-    }
-    else
-    {
-        cout << "m. total memory traffic:\t" << l1.total_mem_traffic << endl;
+        cout << "===== Simulation results (raw) =====" << endl;
     }
 
+    l1.print_results();
+    l2.print_results();
+    
+    if (!silent)
+    {
+        if (l2_size > 0)
+        {
+            cout << "m. total memory traffic:\t" << l2.total_mem_traffic << endl;
+        }
+        else
+        {
+            cout << "m. total memory traffic:\t" << l1.total_mem_traffic << endl;
+        }
+    }
 
     return 0;
 }
