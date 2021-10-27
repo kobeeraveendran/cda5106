@@ -17,6 +17,32 @@
 using namespace std;
 
 void external_cache_access(int bit_address, string mode, int trace_index, int level);
+vector<int> access_stream_l1;
+vector<int> access_stream_l2;
+
+// vector<int> extract_fields(int bit_address, int size, int block_size, int assoc)
+// {
+//     int index_bits = log2(size / (block_size * assoc));
+//     int offset_bits = log2(block_size);
+//     int tag_bits = 32 - index_bits - offset_bits;
+//     int offset_mask = pow(2, offset_bits) - 1;
+//     int index_mask = pow(2, index_bits) - 1;
+//     int offset, index, tag;
+
+//     vector<int> retval;
+
+//     offset = bit_address & offset_mask;
+//     bit_address >>= offset_bits;
+//     index = bit_address & index_mask;
+//     bit_address >>= index_bits;
+//     tag = bit_address;
+
+//     retval.push_back(tag);
+//     retval.push_back(index);
+//     retval.push_back(offset);
+
+//     return retval;
+// }
 
 class Line
 {
@@ -170,6 +196,11 @@ class Cache
             address_copy >>= index_bits;
             tag = address_copy;
 
+            // vector<int> fields = extract_fields(bit_address, size, block_size, assoc);
+            // tag = fields[0];
+            // index = fields[1];
+            // offset = fields[2];
+
             if (mode == "w") writes++; else reads++;
 
             // for both reads and writes
@@ -235,7 +266,7 @@ class Cache
                 }
 
                 // no updates necessary for optimal, just write to the block
-                else
+                else if (replacement == 2)
                 {
                     cache[index][invalid_index] = Line(1, 1, tag, bit_address);
                 }
@@ -255,14 +286,13 @@ class Cache
             }
             else
             {
-                // TODO: refactor all this (duplicated code here and there)
-
                 // if there were no invalid indices, evict the block as determined by the 
                 // replacement policy
+                int replacement_index;
+
                 if (replacement == 0)
                 {
                     // find the LRU block
-                    int min_index = 0;
                     int min_count = INT32_MAX;
 
                     for (int i = 0; i < cache[index].size(); i++)
@@ -270,82 +300,15 @@ class Cache
                         if (cache[index][i].lru_count < min_count)
                         {
                             min_count = cache[index][i].lru_count;
-                            min_index = i;
+                            replacement_index = i;
                         }
-                    }
-
-                    if (cache[index][min_index].dirty)
-                    {
-                        // if dirty, we must first write-back to memory (or next level cache) before evicting
-                        writebacks++;
-
-                        if (cache_level == 1)
-                        {
-                            // write the victim block to L2 (if it exists) - step 1 of allocation
-                            external_cache_access(cache[index][min_index].addr, "w", trace_index, 2);
-                        }
-
-                        // for inclusive outer caches only
-                        if (cache_level == 2 && inclusion)
-                        {
-                            external_cache_access(cache[index][min_index].addr, "w", trace_index, 1);
-                        }
-                    }
-
-                    cache[index][min_index] = Line(1, 0, tag, bit_address, lru_counter[index]++);
-
-                    // step 2 of allocating a block
-                    if (cache_level == 1)
-                    {
-                        external_cache_access(bit_address, "r", trace_index, 2);
-                    }
-
-                    if (mode == "w")
-                    {
-                        // if we wrote instead of read, dirty bit must be set
-                        cache[index][min_index].dirty = 1;
-                    }
+                    }                    
                 }
 
                 else if (replacement == 1)
                 {
                     // find the LRU block according to PLRU
-                    int lru = trees[index].replace();
-
-                    if (cache[index][lru].dirty)
-                    {
-                        // write back to memory/next level cache
-                        writebacks++;
-
-                        // TODO: add writeback functionality
-                        
-                        
-                        // step 1 of the block allocation process
-                        if (cache_level == 1)
-                        {
-                            external_cache_access(cache[index][lru].addr, "w", trace_index, 2);
-                        }
-
-                        // handle inclusive cache stuff if this is L2
-                        if (cache_level == 2 && inclusion)
-                        {
-                            external_cache_access(cache[index][lru].addr, "w", trace_index, 1);
-                        }
-                    }
-
-                    cache[index][lru] = Line(1, 0, tag, bit_address);
-
-                    // step 2 of block allocation
-                    if (cache_level == 1)
-                    {
-                        external_cache_access(bit_address, "r", trace_index, 2);
-                    }
-
-                    if (mode == "w")
-                    {
-                        // if writing, dirty bit must be set
-                        cache[index][lru].dirty = 1;
-                    }
+                    replacement_index = trees[index].replace();
                 }
 
                 else if (replacement == 2)
@@ -353,12 +316,14 @@ class Cache
                     // optimal - use foresight to determine the block to replace
                     // and replace the leftmost one in case multiple are not reused
                     vector<int> offsets;
-                    int replacement_index = 0, max_offset = -1;
+                    int max_offset = -1;
+                    int next_use;
 
                     for (int i = 0; i < cache[index].size(); i++)
                     {
                         // find the offset for this block
-                        offsets.push_back(foresight(cache[index][i].addr, trace_index, trace));
+                        next_use = foresight(cache[index][i].addr, trace_index, trace);
+                        offsets.push_back(next_use);
                     }
 
                     // of all the offsets, find the maximum value; if any are equal 
@@ -372,38 +337,45 @@ class Cache
                             replacement_index = i;
                         }
                     }
+                }
 
-                    // if dirty, we must writeback
-                    if (cache[index][replacement_index].dirty)
+                if (cache[index][replacement_index].dirty)
+                {
+                    // if dirty, we must first write-back to memory (or next level cache) before evicting
+                    writebacks++;
+
+                    if (cache_level == 1)
                     {
-                        writebacks++;
-
-                        if (cache_level == 1)
-                        {
-                            // write the victim block to L2 (if it exists) - step 1 of allocation
-                            external_cache_access(cache[index][replacement_index].addr, "w", trace_index, 2);
-                        }
-
-                        if (cache_level == 2 && inclusion)
-                        {
-                            external_cache_access(cache[index][replacement_index].addr, "w", trace_index, 1);
-                        }
+                        // write the victim block to L2 (if it exists) - step 1 of allocation
+                        external_cache_access(cache[index][replacement_index].addr, "w", trace_index, 2);
                     }
 
-                    // stringstream ss, ss1;
-                    // ss << hex << cache[index][replacement_index].addr;
-                    // ss1 << hex << bit_address;
+                    // for inclusive outer caches only
+                    if (cache_level == 2 && inclusion)
+                    {
+                        external_cache_access(cache[index][replacement_index].addr, "w", trace_index, 1);
+                    }
+                }
 
-                    // cout << "REPLACING BLOCK " << ss.str() << " WITH BLOCK " << ss1.str() << endl;
-
-                    // replace the block with the new one
+                if (replacement == 0)
+                {
+                    cache[index][replacement_index] = Line(1, 0, tag, bit_address, lru_counter[index]++);
+                }
+                else
+                {
                     cache[index][replacement_index] = Line(1, 0, tag, bit_address);
+                }
 
-                    if (mode == "w")
-                    {
-                        // if writing, set dirty bit
-                        cache[index][replacement_index].dirty = 1;
-                    }
+                // step 2 of allocating a block
+                if (cache_level == 1)
+                {
+                    external_cache_access(bit_address, "r", trace_index, 2);
+                }
+
+                if (mode == "w")
+                {
+                    // if we wrote instead of read, dirty bit must be set
+                    cache[index][replacement_index].dirty = 1;
                 }
             }
 
@@ -572,10 +544,16 @@ int main(int argc, char *argv[])
     cout << "trace_file:\t\t" << trace_path << endl;
     
     // preprocess the trace files for optimal replacement pol
-    vector<int> access_stream = preprocesses_trace(trace_path);
+    // access_stream_l1 = preprocesses_trace(trace_path, log2(block_size) + log2(l1_size / (block_size * l1_assoc)));
+    access_stream_l1 = preprocesses_trace(trace_path, 0);
+    if (l2_size > 0)
+    {
+        // access_stream_l2 = preprocesses_trace(trace_path, log2(block_size) + log2(l2_size / (block_size * l2_assoc)));
+        access_stream_l2 = preprocesses_trace(trace_path, 0);
+    }
 
-    l1 = Cache(1, block_size, l1_size, l1_assoc, replacement, inclusion, access_stream);
-    l2 = Cache(2, block_size, l2_size, l2_assoc, replacement, inclusion, access_stream);
+    l1 = Cache(1, block_size, l1_size, l1_assoc, replacement, inclusion, access_stream_l1);
+    l2 = Cache(2, block_size, l2_size, l2_assoc, replacement, inclusion, access_stream_l2);
 
     // read address sequence from file, line by line
     fstream trace_file;
@@ -600,7 +578,6 @@ int main(int argc, char *argv[])
             }
 
             l1.access(stoi(address, nullptr, 16), mode, count);
-
             count++;
         }
 

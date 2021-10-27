@@ -100,7 +100,7 @@ class PseudoLRU
         }
 };
 
-vector<int> preprocesses_trace(string filepath)
+vector<int> preprocesses_trace(string filepath, int tagshift)
 {
     vector<int> access_stream;
     fstream trace_file;
@@ -120,6 +120,7 @@ vector<int> preprocesses_trace(string filepath)
             }
 
             int32_t bit_address = stoi(address, nullptr, 16);
+            bit_address >>= tagshift;
             access_stream.push_back(bit_address);
         }
     }
@@ -140,12 +141,12 @@ int foresight(int query_address, int trace_index, vector<int> trace)
 {
 
     // cout << "QUERY ADDRESS: " << query_address << endl;
-    // determine how many timesteps in the future this block is needed again
-    for (int i = trace_index; i < trace.size(); i++)
+    // determine when in the future this block is needed again
+    for (int i = trace_index + 1; i < trace.size(); i++)
     {
         if (query_address == trace[i])
         {
-            return i - trace_index;
+            return i;
         }
     }
 
