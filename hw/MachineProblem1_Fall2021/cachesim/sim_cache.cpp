@@ -325,7 +325,7 @@ class Cache
                     for (int i = 0; i < cache[index].size(); i++)
                     {
                         // find the offset for this block
-                        next_use = foresight(cache[index][i].addr, trace_index, trace);
+                        next_use = foresight(cache[index][i].addr >> offset_bits, trace_index, trace);
                         offsets.push_back(next_use);
                     }
 
@@ -588,11 +588,11 @@ int main(int argc, char *argv[])
     // access_stream_l1 = preprocesses_trace(trace_path, log2(block_size) + log2(l1_size / (block_size * l1_assoc)));
     if (replacement == 2)
     {
-        access_stream_l1 = preprocesses_trace(trace_path, 0);
+        access_stream_l1 = preprocesses_trace(trace_path, log2(block_size));
         if (l2_size > 0)
         {
             // access_stream_l2 = preprocesses_trace(trace_path, log2(block_size) + log2(l2_size / (block_size * l2_assoc)));
-            access_stream_l2 = preprocesses_trace(trace_path, 0);
+            access_stream_l2 = preprocesses_trace(trace_path, log2(block_size));
         }
     }
 
