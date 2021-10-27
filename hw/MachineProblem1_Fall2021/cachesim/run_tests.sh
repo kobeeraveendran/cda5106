@@ -2,77 +2,28 @@
 make clean
 make
 
-./sim_cache 16 1024 2 0 0 0 0 gcc_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation0.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 0: FAIL"
-else
-    echo "Validation 0: PASS"
-fi
+blockSize=16
+l1Size=1024
+l1Assoc=(2 1 2 2 2 1 2 1)
+l2Size=(0 0 0 0 8192 8192 8192 8192)
+l2Assoc=(0 0 0 0 4 4 4 4)
+replacement=(0 0 1 2 0 0 0 0)
+inclusion=(0 0 0 0 0 0 1 1)
+traceFile=("gcc_trace.txt" "perl_trace.txt" "gcc_trace.txt" "vortex_trace.txt" \
+           "gcc_trace.txt" "go_trace.txt" "gcc_trace.txt" "compress_trace.txt")
 
-./sim_cache 16 1024 1 0 0 0 0 perl_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation1.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 1: FAIL"
-else
-    echo "Validation 1: PASS"
-fi
-
-./sim_cache 16 1024 2 0 0 1 0 gcc_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation2.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 2: FAIL"
-else
-    echo "Validation 2: PASS"
-fi
-
-./sim_cache 16 1024 2 0 0 2 0 vortex_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation3.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 3: FAIL"
-else
-    echo "Validation 3: PASS"
-fi
-
-./sim_cache 16 1024 2 8192 4 0 0 gcc_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation4.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 4: FAIL"
-else
-    echo "Validation 4: PASS"
-fi
-
-./sim_cache 16 1024 1 8192 4 0 0 go_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation5.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 5: FAIL"
-else
-    echo "Validation 5: PASS"
-fi
-
-./sim_cache 16 1024 2 8192 4 0 1 gcc_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation6.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 6: FAIL"
-else
-    echo "Validation 6: PASS"
-fi
-
-./sim_cache 16 1024 1 8192 4 0 1 compress_trace.txt > output.txt
-DIFF=$(diff -iw output.txt ../validation_runs/validation7.txt)
-if [[ -n $DIFF ]]
-then
-    echo "Validation 7: FAIL"
-else
-    echo "Validation 7: PASS"
-fi
+for i in {0..7};
+do
+    ./sim_cache ${blockSize} ${l1Size} ${l1Assoc[$i]} ${l2Size[$i]} ${l2Assoc[$i]} \
+    ${replacement[$i]} ${inclusion[$i]} ${traceFile[$i]} > outputs/output${i}.txt
+    DIFF=$(diff -iw outputs/output${i}.txt ../validation_runs/validation${i}.txt)
+    if [[ -n $DIFF ]]
+    then
+        echo "Validation ${i}: FAIL"
+    else
+        echo "Validation ${i}: PASS"
+    fi
+done
 
 # remove generated .o files, sim_cache binaries, and output.txt file
 rm -f *.o sim_cache
