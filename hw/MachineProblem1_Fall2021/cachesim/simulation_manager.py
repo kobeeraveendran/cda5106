@@ -163,10 +163,16 @@ if __name__ == "__main__":
 		2: "Optimal"
 	}
 
+	policy_markers = {
+		0: 'D', 
+		1: 's', 
+		2: '^'
+	}
+
 	for r in [0, 1, 2]:
 		x = [math.log2(rep_pols[r][i][0]) for i in range(len(rep_pols[r]))]
 		y = [rep_pols[r][i][1] for i in range(len(rep_pols[r]))]
-		plt.plot(x, y, label = policy_mapping[r])
+		plt.plot(x, y, marker = policy_markers[r], label = policy_mapping[r])
 		plt.legend(title = "Replacement Policy", loc = "upper right")
 
 	plt.savefig("graph_logs/graph3.png")
@@ -200,15 +206,21 @@ if __name__ == "__main__":
 				  (l2_readmisses / (l1_reads + l1_writes)) * 100
 
 			inc_prop[inclusion].append((size, aat))
-			print("(graph 3) size: {}\t | rep_pol: {}\t | AAT (ns): {}".format(size, rep_pol, aat))
+			print("(graph 4) size: {}\t | inclusion prop: {}\t | AAT (ns): {}".format(size, inclusion, aat))
 			g4_count += 1
 
 		print("----------------------------------------------------------------------")
 
+	print("\nGRAPH4 SIMULATIONS PLOTTED:", g4_count, '\n')
+
+	plt.title("Graph 4: Size and Inclusion Property vs. AAT")
+	plt.xlabel("log2(Cache Size)")
+	plt.ylabel("Average Access Time (ns)")
+
 	for inc in [0, 1]:
 		x = [math.log2(inc_prop[inc][i][0]) for i in range(len(inc_prop[inc]))]
 		y = [inc_prop[inc][i][1] for i in range(len(inc_prop[inc]))]
-		plt.plot(x, y, label = "inclusive" if inc else "non-inclusive")
+		plt.plot(x, y, marker = 'o' if inc else 's', label = "inclusive" if inc else "non-inclusive")
 		plt.legend(title = "Inclusion Property", loc = "upper right")
 
 	plt.savefig("graph_logs/graph4.png")

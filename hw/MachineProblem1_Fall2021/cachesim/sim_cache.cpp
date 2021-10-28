@@ -395,7 +395,7 @@ class Cache
             total_mem_traffic += read_misses + write_misses + writebacks;
             
             // for arrangements of output, see my python script
-            if (cache_level == 1 && silent != 0)
+            if (size > 0 && silent != 0)
             {
                 // logfile.open("graph_logs/output.csv", ios::app);
 
