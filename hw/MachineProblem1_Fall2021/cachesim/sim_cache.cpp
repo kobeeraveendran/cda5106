@@ -397,22 +397,22 @@ class Cache
             // for arrangements of output, see my python script
             if (cache_level == 1 && silent != 0)
             {
-                logfile.open("graph_logs/output.csv", ios::app);
+                // logfile.open("graph_logs/output.csv", ios::app);
 
                 if (silent == 1)
                 {
                     // graph #1: L1 MR and assoc. vs size
-                    logfile << miss_rate << endl;
+                    cout << miss_rate << endl;
                 }
                 else if (silent >= 2 && silent <= 4)
                 {
                     // graphs 2, 3, and 4 (deal with AAT)
                     // requires some postprocessing on the python side using 
                     // CACTI table values and these values
-                    logfile << reads << "," << read_misses << "," << writes << "," << write_misses << endl;
+                    cout << reads << "," << read_misses << "," << writes << "," << write_misses << endl;
                 }
 
-                logfile.close();
+                // logfile.close();
             }
 
             if (!silent)
@@ -516,9 +516,9 @@ void external_cache_access(int bit_address, string mode, int trace_index, int le
  * silent: int; whether to print full simulation results (0/don't specify), or print
  *         results needed for the report graphs (to be fed into my python script):
  *         (1) - graph #1 (L1 MR & assoc. vs. log2(SIZE))
- *         (2) - graph #2 (same as graph #1 but with AAT instead of L1 MR)
- *         (3) - graph #3 (AAT and replacement policy vs. log2(SIZE))
- *         (4) - graph #4 (AAT and inclusion policy vs. log2(SIZE))
+ *         (2) - graph #2 (prints reads, read misses, writes, and write misses)
+ *         (3) - graph #3 (same as 2)
+ *         (4) - graph #4 (same as 2)
  */
 int main(int argc, char *argv[])
 {
@@ -585,13 +585,11 @@ int main(int argc, char *argv[])
     }
     
     // preprocess the trace files for optimal replacement pol
-    // access_stream_l1 = preprocesses_trace(trace_path, log2(block_size) + log2(l1_size / (block_size * l1_assoc)));
     if (replacement == 2)
     {
         access_stream_l1 = preprocesses_trace(trace_path, log2(block_size));
         if (l2_size > 0)
         {
-            // access_stream_l2 = preprocesses_trace(trace_path, log2(block_size) + log2(l2_size / (block_size * l2_assoc)));
             access_stream_l2 = preprocesses_trace(trace_path, log2(block_size));
         }
     }

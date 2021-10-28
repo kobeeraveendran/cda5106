@@ -130,6 +130,8 @@ vector<int> preprocesses_trace(string filepath, int tagshift)
     return access_stream;
 }
 
+// TODO: optimize this using a hashset if time permits
+
 // "predict the future" in the Belady optimal replacement algorithm by determining 
 // which block in the line will be least urgently needed in the future
 /*
@@ -139,8 +141,6 @@ vector<int> preprocesses_trace(string filepath, int tagshift)
  */
 int foresight(int query_address, int trace_index, vector<int> trace)
 {
-
-    // cout << "QUERY ADDRESS: " << query_address << endl;
     // determine when in the future this block is needed again
     for (int i = trace_index + 1; i < trace.size(); i++)
     {
@@ -151,8 +151,5 @@ int foresight(int query_address, int trace_index, vector<int> trace)
     }
 
     // otherwise, it was never used again, so it should be replaced
-    // stringstream ss;
-    // ss << hex << query_address;
-    // cout << "QUERY ADDR: " << ss.str() << " at trace index: " << trace_index << endl;
     return trace.size();
 };
