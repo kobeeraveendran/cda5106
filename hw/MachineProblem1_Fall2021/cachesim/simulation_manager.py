@@ -225,3 +225,6 @@ if __name__ == "__main__":
 
 	plt.savefig("graph_logs/graph4.png")
 	plt.clf()
+
+	# clear executables
+	os.system("make clean")
