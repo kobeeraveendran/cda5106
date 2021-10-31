@@ -73,23 +73,25 @@
 
     \begin{itemize}
         \item \textbf{compulsory misses:} These are inevitable misses, resulting from having to fetch blocks from 
-        memory the first time they're needed in the cache. I estimate an average of 4\% of all misses are compulsory, 
+        memory the first time they're needed in the cache. I estimate an average of between 0-3\% of all misses are compulsory, 
         based on the performance of a fully-associative cache (which has the lowest conflict miss rate), since these are misses that would occur even in a ``perfect'' and 
-        infinitely-sized cache with full associativity and LRU replacement. I arrived at about ~4\% because that seems 
+        infinitely-sized cache with full associativity and LRU replacement. I arrived at this range because it seems 
         to be the miss rate that the cache would converge to as cache size and associativity tended toward infinity, 
-        indicating that a miss rate of 4\% is a lower bound (which makes sense because these misses are inevitable).
+        indicating that a miss rate of \textless3\% is a lower bound (which makes sense because these misses are inevitable).
 
         \item \textbf{conflict misses:} These are caused by collisions or conflicts in which there are more blocks to 
         be placed in a set than the set can hold (thus bottlenecked by cache associativity). Based on this, it makes sense 
-        that a fully-associative cache with LRU replacement would have a low (if not zero) conflict miss rate, while a 1-way 
+        that a fully-associative cache with LRU replacement would have a low (zero) conflict miss rate, while a 1-way 
         set-associative cache would have the highest conflict miss rate. Below are some rough guesses based on the graph 
-        and intuition:
+        and intuition (such as difference in miss rate between an assoc. $A_i$ and it's next largest assoc. $A_{i+1}$, 
+        inherent correlation between associativity and conflict miss rate, etc.), but keep in mind that cache size also has an 
+        effect on conflict miss rate in tandem with associativity (so these miss rates will vary):
 
         \begin{itemize}
-            \item \textbf{1-way:} 
-            \item \textbf{2-way:} 
-            \item \textbf{4-way:} 
-            \item \textbf{8-way:} 
+            \item \textbf{1-way:} $\sim 5-7\%$
+            \item \textbf{2-way:} $\sim 3\%$
+            \item \textbf{4-way:} $\sim 2\%$
+            \item \textbf{8-way:} $\leq 1\%$
             \item \textbf{fully-associative:} 0\%
         \end{itemize}
 
@@ -128,9 +130,9 @@
     in practice, I'd also like to compare LRU and PseudoLRU, which are both practical.
 
     While they appear to yield exactly equal performance, when viewing my simulation stats, I did notice a slightly-worse 
-    performance in PseudoLRU (to view my simulation run logs, run \texttt{simulation\_manager.py} in 
-    \href{https://github.com/kobeeraveendran/cda5106/tree/master/hw/MachineProblem1_Fall2021/cachesim}
-    {my repository}). However, considering the fact that LRU is more memory-efficient in practice, and can 
+    performance in PseudoLRU (to confirm, feel free to 
+    \href{https://github.com/kobeeraveendran/cda5106/blob/master/hw/MachineProblem1_Fall2021/cachesim/graph_logs/simulation_logs.txt}
+    {click here to view my simulation logs} once the repository is public). However, considering the fact that LRU is more memory-efficient in practice, and can 
     still approximate LRU almost unnoticeably-closely, it could be a better candidate between the two.
 
     \newpage
@@ -142,11 +144,12 @@
     In this experiment, cache size varies between $2^{11}$B and $2^{16}$B (2kB and 64kB, respectively), while 
     the inclusion property is either non-inclusive or inclusive.
 
-    Interestingly enough, the inclusivity of the caches does not seem to matter much in this experiment (between a cache 
+    Interestingly enough, the inclusivity of the caches does not seem to matter much in this benchmark (between a cache 
     that is inclusive and one that is non-inclusive). Only in the smallest cache size does the non-inclusive cache 
     yield a lower AAT, but afterwards, they both seem to exactly match (unnoticeably small differences, if any).
 
-    That said, I do not imagine this same trend would hold if they were both compared to an exclusive outer cache (not 
+    Perhaps the performance between inclusive/non-inclusive caches are close due to lucky access order in the gcc 
+    benchmark, but I do not imagine this same trend would hold if they were both compared to an exclusive outer cache (not 
     tested here). That is because there will be less cache coherency (since each cache level has unique items), but 
     better memory utilization (no redundancy) and \textit{potentially} worse (higher) access time. This last point will 
     be due to the fact that inclusive caches can eliminate the need to search entire cache levels (i.e. if a block is not 
