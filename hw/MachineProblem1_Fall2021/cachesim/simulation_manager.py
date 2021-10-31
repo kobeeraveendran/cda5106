@@ -4,6 +4,7 @@ import pandas as pd
 import math
 import os
 import subprocess
+import time
 
 def calculate_aat(reads, read_misses, writes, write_misses, access_time, miss_latency = 100):
 	return access_time + ((read_misses + write_misses) / (reads + writes)) * miss_latency
@@ -50,7 +51,9 @@ if __name__ == "__main__":
 			
 			miss_rate = float(miss_rate) * 100
 
-			print("(graph 1) size: {}\t | assoc: {}\t | miss rate (%): {}".format(size, assoc, miss_rate))
+			assoc_str = str(assoc if assoc != size // 32 else "FA ({})".format(assoc))
+
+			print("(graph 1) size: {}\t | assoc: {} | miss rate (%): {}".format(size, assoc_str.ljust(10), miss_rate))
 			
 			assocs['fa' if assoc == size // 32 else assoc].append(miss_rate)
 			
@@ -97,13 +100,16 @@ if __name__ == "__main__":
 				["./sim_cache", '32', str(size), str(assoc), '0', '0', '0', '0', "gcc_trace.txt", '2'], 
 				capture_output = True
 			).stdout.decode("utf-8")
+			assoc_str = str(assoc if assoc != size // 32 else "FA ({})".format(assoc))
+
 
 			reads, read_misses, writes, write_misses = [int(arg) for arg in line.split(',')]
 
 			aat = calculate_aat(reads, read_misses, writes, write_misses, ht)
 			
-			assocs['fa' if assoc == size // 32 else assoc].append((size, aat))
-			print("(graph 2) size: {}\t | assoc: {}\t | AAT (ns): {}".format(size, assoc, aat))
+			assocs['fa' if assoc == size // 32 else assoc].append((size, aat))			
+
+			print("(graph 2) size: {}\t | assoc: {} | AAT (ns): {}".format(size, assoc_str.ljust(10), aat))
 			g2_count += 1
 
 		print("----------------------------------------------------------------------")
