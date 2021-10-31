@@ -17,11 +17,10 @@
 using namespace std;
 
 void external_cache_access(int bit_address, string mode, int trace_index, int level);
+
 vector<int> access_stream_l1;
 vector<int> access_stream_l2;
 int silent = 0;
-
-fstream logfile;
 
 class Line
 {
@@ -72,8 +71,6 @@ class Cache
         int tag_mask, index_mask, offset_mask;
         
         vector<vector<Line>> cache;
-
-        Cache(){}
 
         // instantiate an instance of a cache for a specified cache level
         /* 
@@ -174,11 +171,6 @@ class Cache
             index = address_copy & index_mask;
             address_copy >>= index_bits;
             tag = address_copy;
-
-            // vector<int> fields = extract_fields(bit_address, size, block_size, assoc);
-            // tag = fields[0];
-            // index = fields[1];
-            // offset = fields[2];
 
             if (mode == "w") writes++; else reads++;
 
@@ -300,7 +292,7 @@ class Cache
 
                     for (int i = 0; i < cache[index].size(); i++)
                     {
-                        // find the offset for this block
+                        // find the index at which this block is needed again (within THIS SET INDEX)
                         next_use = foresight(cache[index][i].addr >> offset_bits, trace_index, trace);
                         offsets.push_back(next_use);
                     }
@@ -373,22 +365,10 @@ class Cache
             // for arrangements of output, see my python script
             if (size > 0 && silent != 0)
             {
-                // logfile.open("graph_logs/output.csv", ios::app);
-
-                if (silent == 1)
+                if (silent == 1 || silent == 4)
                 {
                     // graph #1: L1 MR and assoc. vs size
-                    cout << miss_rate << endl;
-                }
-                else if (silent >= 2 && silent < 4)
-                {
-                    // graphs 2, 3, and 4 (deal with AAT)
-                    // requires some postprocessing on the python side using 
-                    // CACTI table values and these values
-                    cout << reads << "," << read_misses << "," << writes << "," << write_misses << endl;
-                }
-                else if (silent == 4)
-                {
+                    // graph #4: requires MR for AAT calculation
                     if (size == 0)
                     {
                         cout << "0";
@@ -404,11 +384,15 @@ class Cache
                             cout << miss_rate;
                         }
                     }
-
                     cout << endl;
                 }
-
-                // logfile.close();
+                else if (silent >= 2 && silent < 4)
+                {
+                    // graphs 2 and 3 (deal with AAT)
+                    // requires some postprocessing on the python side using 
+                    // CACTI table values and these values
+                    cout << reads << "," << read_misses << "," << writes << "," << write_misses << endl;
+                }
             }
 
             if (!silent)
@@ -511,10 +495,10 @@ void external_cache_access(int bit_address, string mode, int trace_index, int le
  * trace_file: string (trace file path with extension)
  * silent: int; whether to print full simulation results (0/don't specify), or print
  *         results needed for the report graphs (to be fed into my python script):
- *         (1) - graph #1 (L1 MR & assoc. vs. log2(SIZE))
+ *         (1) - graph #1 (L1/L2 (if necessary) MR & assoc. vs. log2(SIZE))
  *         (2) - graph #2 (prints reads, read misses, writes, and write misses)
  *         (3) - graph #3 (same as 2)
- *         (4) - graph #4 (same as 2)
+ *         (4) - graph #4 (same as 1)
  */
 int main(int argc, char *argv[])
 {

@@ -130,7 +130,7 @@ vector<int> preprocesses_trace(string filepath, int tagshift)
     return access_stream;
 }
 
-// TODO: optimize this using a hashset if time permits
+// TODO: optimize this using a hashset or store next-usages on a set-by-set basis if time permits
 
 // "predict the future" in the Belady optimal replacement algorithm by determining 
 // which block in the line will be least urgently needed in the future
