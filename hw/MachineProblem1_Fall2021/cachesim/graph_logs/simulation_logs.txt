@@ -1,0 +1,201 @@
+rm -f *.o sim_cache output.txt
+g++    -c -o sim_cache.o sim_cache.cpp
+g++ -o sim_cache -O3 -Wall   sim_cache.o -lm
+-----------DONE WITH SIM_CACHE-----------
+my work is done here...
+(graph 1) size: 1024	 | assoc: 1	 | miss rate (%): 82.27799999999999
+(graph 1) size: 1024	 | assoc: 2	 | miss rate (%): 81.703
+(graph 1) size: 1024	 | assoc: 4	 | miss rate (%): 81.17999999999999
+(graph 1) size: 1024	 | assoc: 8	 | miss rate (%): 81.00699999999999
+(graph 1) size: 1024	 | assoc: 32	 | miss rate (%): 80.79499999999999
+----------------------------------------------------------------------
+(graph 1) size: 2048	 | assoc: 1	 | miss rate (%): 73.898
+(graph 1) size: 2048	 | assoc: 2	 | miss rate (%): 71.16
+(graph 1) size: 2048	 | assoc: 4	 | miss rate (%): 70.135
+(graph 1) size: 2048	 | assoc: 8	 | miss rate (%): 70.0
+(graph 1) size: 2048	 | assoc: 64	 | miss rate (%): 69.813
+----------------------------------------------------------------------
+(graph 1) size: 4096	 | assoc: 1	 | miss rate (%): 61.739
+(graph 1) size: 4096	 | assoc: 2	 | miss rate (%): 59.050000000000004
+(graph 1) size: 4096	 | assoc: 4	 | miss rate (%): 56.52
+(graph 1) size: 4096	 | assoc: 8	 | miss rate (%): 55.339000000000006
+(graph 1) size: 4096	 | assoc: 128	 | miss rate (%): 55.198
+----------------------------------------------------------------------
+(graph 1) size: 8192	 | assoc: 1	 | miss rate (%): 51.696
+(graph 1) size: 8192	 | assoc: 2	 | miss rate (%): 44.773
+(graph 1) size: 8192	 | assoc: 4	 | miss rate (%): 42.561
+(graph 1) size: 8192	 | assoc: 8	 | miss rate (%): 40.708
+(graph 1) size: 8192	 | assoc: 256	 | miss rate (%): 39.552
+----------------------------------------------------------------------
+(graph 1) size: 16384	 | assoc: 1	 | miss rate (%): 40.052
+(graph 1) size: 16384	 | assoc: 2	 | miss rate (%): 33.129
+(graph 1) size: 16384	 | assoc: 4	 | miss rate (%): 29.522
+(graph 1) size: 16384	 | assoc: 8	 | miss rate (%): 28.327999999999996
+(graph 1) size: 16384	 | assoc: 512	 | miss rate (%): 27.217000000000002
+----------------------------------------------------------------------
+(graph 1) size: 32768	 | assoc: 1	 | miss rate (%): 28.432000000000002
+(graph 1) size: 32768	 | assoc: 2	 | miss rate (%): 22.179
+(graph 1) size: 32768	 | assoc: 4	 | miss rate (%): 18.687
+(graph 1) size: 32768	 | assoc: 8	 | miss rate (%): 17.399
+(graph 1) size: 32768	 | assoc: 1024	 | miss rate (%): 16.708000000000002
+----------------------------------------------------------------------
+(graph 1) size: 65536	 | assoc: 1	 | miss rate (%): 20.396
+(graph 1) size: 65536	 | assoc: 2	 | miss rate (%): 11.673
+(graph 1) size: 65536	 | assoc: 4	 | miss rate (%): 8.588
+(graph 1) size: 65536	 | assoc: 8	 | miss rate (%): 6.583
+(graph 1) size: 65536	 | assoc: 2048	 | miss rate (%): 5.899
+----------------------------------------------------------------------
+(graph 1) size: 131072	 | assoc: 1	 | miss rate (%): 15.164
+(graph 1) size: 131072	 | assoc: 2	 | miss rate (%): 6.8709999999999996
+(graph 1) size: 131072	 | assoc: 4	 | miss rate (%): 3.383
+(graph 1) size: 131072	 | assoc: 8	 | miss rate (%): 2.726
+(graph 1) size: 131072	 | assoc: 4096	 | miss rate (%): 2.582
+----------------------------------------------------------------------
+(graph 1) size: 262144	 | assoc: 1	 | miss rate (%): 6.474
+(graph 1) size: 262144	 | assoc: 2	 | miss rate (%): 4.1930000000000005
+(graph 1) size: 262144	 | assoc: 4	 | miss rate (%): 2.628
+(graph 1) size: 262144	 | assoc: 8	 | miss rate (%): 2.582
+(graph 1) size: 262144	 | assoc: 8192	 | miss rate (%): 2.582
+----------------------------------------------------------------------
+(graph 1) size: 524288	 | assoc: 1	 | miss rate (%): 6.304
+(graph 1) size: 524288	 | assoc: 2	 | miss rate (%): 2.582
+(graph 1) size: 524288	 | assoc: 4	 | miss rate (%): 2.582
+(graph 1) size: 524288	 | assoc: 8	 | miss rate (%): 2.582
+(graph 1) size: 524288	 | assoc: 16384	 | miss rate (%): 2.582
+----------------------------------------------------------------------
+(graph 1) size: 1048576	 | assoc: 1	 | miss rate (%): 5.8709999999999996
+(graph 1) size: 1048576	 | assoc: 2	 | miss rate (%): 2.582
+(graph 1) size: 1048576	 | assoc: 4	 | miss rate (%): 2.582
+(graph 1) size: 1048576	 | assoc: 8	 | miss rate (%): 2.582
+(graph 1) size: 1048576	 | assoc: 32768	 | miss rate (%): 2.582
+----------------------------------------------------------------------
+
+GRAPH1 SIMULATIONS PLOTTED: 55 
+
+(graph 2) size: 1024	 | assoc: 1	 | AAT (ns): 82.39279699999999
+(graph 2) size: 1024	 | assoc: 2	 | AAT (ns): 81.843329
+(graph 2) size: 1024	 | assoc: 4	 | AAT (ns): 81.32682
+(graph 2) size: 1024	 | assoc: 32	 | AAT (ns): 80.95048399999999
+----------------------------------------------------------------------
+(graph 2) size: 2048	 | assoc: 1	 | AAT (ns): 74.02709
+(graph 2) size: 2048	 | assoc: 2	 | AAT (ns): 71.321691
+(graph 2) size: 2048	 | assoc: 4	 | AAT (ns): 70.289496
+(graph 2) size: 2048	 | assoc: 8	 | AAT (ns): 70.180686
+----------------------------------------------------------------------
+(graph 2) size: 4096	 | assoc: 1	 | AAT (ns): 61.886005
+(graph 2) size: 4096	 | assoc: 2	 | AAT (ns): 59.231131000000005
+(graph 2) size: 4096	 | assoc: 4	 | AAT (ns): 56.705685
+(graph 2) size: 4096	 | assoc: 8	 | AAT (ns): 55.528065000000005
+(graph 2) size: 4096	 | assoc: 128	 | AAT (ns): 55.380948000000004
+----------------------------------------------------------------------
+(graph 2) size: 8192	 | assoc: 1	 | AAT (ns): 51.859829999999995
+(graph 2) size: 8192	 | assoc: 2	 | AAT (ns): 44.967195000000004
+(graph 2) size: 8192	 | assoc: 4	 | AAT (ns): 42.772173
+(graph 2) size: 8192	 | assoc: 8	 | AAT (ns): 40.920911
+(graph 2) size: 8192	 | assoc: 256	 | AAT (ns): 39.750581
+----------------------------------------------------------------------
+(graph 2) size: 16384	 | assoc: 1	 | AAT (ns): 40.250417
+(graph 2) size: 16384	 | assoc: 2	 | AAT (ns): 33.352917
+(graph 2) size: 16384	 | assoc: 4	 | AAT (ns): 29.755936
+(graph 2) size: 16384	 | assoc: 8	 | AAT (ns): 28.582353999999995
+(graph 2) size: 16384	 | assoc: 512	 | AAT (ns): 27.422608000000004
+----------------------------------------------------------------------
+(graph 2) size: 32768	 | assoc: 1	 | AAT (ns): 28.665353000000003
+(graph 2) size: 32768	 | assoc: 2	 | AAT (ns): 22.441446
+(graph 2) size: 32768	 | assoc: 4	 | AAT (ns): 18.95825
+(graph 2) size: 32768	 | assoc: 8	 | AAT (ns): 17.687511
+(graph 2) size: 32768	 | assoc: 1024	 | AAT (ns): 16.932740000000003
+----------------------------------------------------------------------
+(graph 2) size: 65536	 | assoc: 1	 | AAT (ns): 20.690627
+(graph 2) size: 65536	 | assoc: 2	 | AAT (ns): 11.973727
+(graph 2) size: 65536	 | assoc: 4	 | AAT (ns): 8.907480999999999
+(graph 2) size: 65536	 | assoc: 8	 | AAT (ns): 6.924213
+(graph 2) size: 65536	 | assoc: 2048	 | AAT (ns): 6.175281
+----------------------------------------------------------------------
+(graph 2) size: 131072	 | assoc: 1	 | AAT (ns): 15.5308
+(graph 2) size: 131072	 | assoc: 2	 | AAT (ns): 7.245602999999999
+(graph 2) size: 131072	 | assoc: 4	 | AAT (ns): 3.76328
+(graph 2) size: 131072	 | assoc: 8	 | AAT (ns): 3.127236
+(graph 2) size: 131072	 | assoc: 4096	 | AAT (ns): 2.904486
+----------------------------------------------------------------------
+(graph 2) size: 262144	 | assoc: 1	 | AAT (ns): 6.9178120000000005
+(graph 2) size: 262144	 | assoc: 2	 | AAT (ns): 4.638929
+(graph 2) size: 262144	 | assoc: 4	 | AAT (ns): 3.0856850000000002
+(graph 2) size: 262144	 | assoc: 8	 | AAT (ns): 3.0409249999999997
+(graph 2) size: 262144	 | assoc: 8192	 | AAT (ns): 2.9780089999999997
+----------------------------------------------------------------------
+(graph 2) size: 524288	 | assoc: 1	 | AAT (ns): 6.867451
+(graph 2) size: 524288	 | assoc: 2	 | AAT (ns): 3.149744
+(graph 2) size: 524288	 | assoc: 4	 | AAT (ns): 3.1464179999999997
+(graph 2) size: 524288	 | assoc: 8	 | AAT (ns): 3.160177
+(graph 2) size: 524288	 | assoc: 16384	 | AAT (ns): 3.057728
+----------------------------------------------------------------------
+(graph 2) size: 1048576	 | assoc: 1	 | AAT (ns): 6.57038
+(graph 2) size: 1048576	 | assoc: 2	 | AAT (ns): 3.2880459999999996
+(graph 2) size: 1048576	 | assoc: 4	 | AAT (ns): 3.2816069999999997
+(graph 2) size: 1048576	 | assoc: 8	 | AAT (ns): 3.287819
+(graph 2) size: 1048576	 | assoc: 32768	 | AAT (ns): 3.1704739999999996
+----------------------------------------------------------------------
+
+GRAPH2 SIMULATIONS PLOTTED: 53 
+
+(graph 3) size: 1024	 | rep_pol: 0	 | AAT (ns): 81.32682
+(graph 3) size: 1024	 | rep_pol: 1	 | AAT (ns): 81.33882
+(graph 3) size: 1024	 | rep_pol: 2	 | AAT (ns): 61.518820000000005
+----------------------------------------------------------------------
+(graph 3) size: 2048	 | rep_pol: 0	 | AAT (ns): 70.289496
+(graph 3) size: 2048	 | rep_pol: 1	 | AAT (ns): 70.347496
+(graph 3) size: 2048	 | rep_pol: 2	 | AAT (ns): 50.552496
+----------------------------------------------------------------------
+(graph 3) size: 4096	 | rep_pol: 0	 | AAT (ns): 56.705685
+(graph 3) size: 4096	 | rep_pol: 1	 | AAT (ns): 56.877685
+(graph 3) size: 4096	 | rep_pol: 2	 | AAT (ns): 39.467685
+----------------------------------------------------------------------
+(graph 3) size: 8192	 | rep_pol: 0	 | AAT (ns): 42.772173
+(graph 3) size: 8192	 | rep_pol: 1	 | AAT (ns): 43.051173000000006
+(graph 3) size: 8192	 | rep_pol: 2	 | AAT (ns): 29.578172999999996
+----------------------------------------------------------------------
+(graph 3) size: 16384	 | rep_pol: 0	 | AAT (ns): 29.755936
+(graph 3) size: 16384	 | rep_pol: 1	 | AAT (ns): 30.024936
+(graph 3) size: 16384	 | rep_pol: 2	 | AAT (ns): 20.487936
+----------------------------------------------------------------------
+(graph 3) size: 32768	 | rep_pol: 0	 | AAT (ns): 18.95825
+(graph 3) size: 32768	 | rep_pol: 1	 | AAT (ns): 19.14325
+(graph 3) size: 32768	 | rep_pol: 2	 | AAT (ns): 12.61525
+----------------------------------------------------------------------
+(graph 3) size: 65536	 | rep_pol: 0	 | AAT (ns): 8.907480999999999
+(graph 3) size: 65536	 | rep_pol: 1	 | AAT (ns): 9.069481
+(graph 3) size: 65536	 | rep_pol: 2	 | AAT (ns): 6.306481
+----------------------------------------------------------------------
+(graph 3) size: 131072	 | rep_pol: 0	 | AAT (ns): 3.76328
+(graph 3) size: 131072	 | rep_pol: 1	 | AAT (ns): 3.83328
+(graph 3) size: 131072	 | rep_pol: 2	 | AAT (ns): 3.47928
+----------------------------------------------------------------------
+(graph 3) size: 262144	 | rep_pol: 0	 | AAT (ns): 3.0856850000000002
+(graph 3) size: 262144	 | rep_pol: 1	 | AAT (ns): 3.087685
+(graph 3) size: 262144	 | rep_pol: 2	 | AAT (ns): 3.071685
+----------------------------------------------------------------------
+
+GRAPH3 SIMULATIONS PLOTTED: 27 
+
+(graph 4) size: 2048	 | inclusion prop: 0	 | AAT (ns): 71.2975067148
+(graph 4) size: 2048	 | inclusion prop: 1	 | AAT (ns): 71.72192582534
+----------------------------------------------------------------------
+(graph 4) size: 4096	 | inclusion prop: 0	 | AAT (ns): 56.348273846999994
+(graph 4) size: 4096	 | inclusion prop: 1	 | AAT (ns): 56.482442506649996
+----------------------------------------------------------------------
+(graph 4) size: 8192	 | inclusion prop: 0	 | AAT (ns): 41.32367914979999
+(graph 4) size: 8192	 | inclusion prop: 1	 | AAT (ns): 41.32670298991
+----------------------------------------------------------------------
+(graph 4) size: 16384	 | inclusion prop: 0	 | AAT (ns): 28.764275077199997
+(graph 4) size: 16384	 | inclusion prop: 1	 | AAT (ns): 28.764275077199997
+----------------------------------------------------------------------
+(graph 4) size: 32768	 | inclusion prop: 0	 | AAT (ns): 17.7940620498
+(graph 4) size: 32768	 | inclusion prop: 1	 | AAT (ns): 17.7940620498
+----------------------------------------------------------------------
+(graph 4) size: 65536	 | inclusion prop: 0	 | AAT (ns): 7.0098202253999995
+(graph 4) size: 65536	 | inclusion prop: 1	 | AAT (ns): 7.0098202253999995
+----------------------------------------------------------------------
+
+GRAPH4 SIMULATIONS PLOTTED: 12 
+
