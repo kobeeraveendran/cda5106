@@ -23,30 +23,6 @@ int silent = 0;
 
 fstream logfile;
 
-// vector<int> extract_fields(int bit_address, int size, int block_size, int assoc)
-// {
-//     int index_bits = log2(size / (block_size * assoc));
-//     int offset_bits = log2(block_size);
-//     int tag_bits = 32 - index_bits - offset_bits;
-//     int offset_mask = pow(2, offset_bits) - 1;
-//     int index_mask = pow(2, index_bits) - 1;
-//     int offset, index, tag;
-
-//     vector<int> retval;
-
-//     offset = bit_address & offset_mask;
-//     bit_address >>= offset_bits;
-//     index = bit_address & index_mask;
-//     bit_address >>= index_bits;
-//     tag = bit_address;
-
-//     retval.push_back(tag);
-//     retval.push_back(index);
-//     retval.push_back(offset);
-
-//     return retval;
-// }
-
 class Line
 {
     public:
@@ -404,12 +380,32 @@ class Cache
                     // graph #1: L1 MR and assoc. vs size
                     cout << miss_rate << endl;
                 }
-                else if (silent >= 2 && silent <= 4)
+                else if (silent >= 2 && silent < 4)
                 {
                     // graphs 2, 3, and 4 (deal with AAT)
                     // requires some postprocessing on the python side using 
                     // CACTI table values and these values
                     cout << reads << "," << read_misses << "," << writes << "," << write_misses << endl;
+                }
+                else if (silent == 4)
+                {
+                    if (size == 0)
+                    {
+                        cout << "0";
+                    }
+                    else
+                    {
+                        if (cache_level == 2)
+                        {
+                            cout << (float)(read_misses) / (float)(reads);
+                        }
+                        else
+                        {
+                            cout << miss_rate;
+                        }
+                    }
+
+                    cout << endl;
                 }
 
                 // logfile.close();

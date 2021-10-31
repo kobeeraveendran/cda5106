@@ -186,10 +186,11 @@ if __name__ == "__main__":
 		0: [], 
 		1: []
 	}
+
+	ht_l1 = cacti_search(df, 1024, 32, 4)
 	
 	for size in l2_size:
 		for inclusion in [0, 1]:
-			ht_l1 = cacti_search(df, 1024, 32, 4)
 			ht_l2 = cacti_search(df, size, 32, 8)
 
 			line = subprocess.run(
@@ -199,11 +200,10 @@ if __name__ == "__main__":
 
 			line = line.split('\n')
 
-			l1_reads, l1_readmisses, l1_writes, l1_writemisses = [int(arg) for arg in line[0].split(',')]
-			l2_reads, l2_readmisses, l2_writes, l2_writemisses = [int(arg) for arg in line[1].split(',')]
+			mr_l1 = float(line[0])
+			mr_l2 = float(line[1])
 
-			aat = ht_l1 + (l1_readmisses + l1_writemisses) / (l1_reads + l1_writes) * ht_l2 + \
-				  (l2_readmisses / (l1_reads + l1_writes)) * 100
+			aat = ht_l1 + mr_l1 * (ht_l2 + mr_l2 * 100)
 
 			inc_prop[inclusion].append((size, aat))
 			print("(graph 4) size: {}\t | inclusion prop: {}\t | AAT (ns): {}".format(size, inclusion, aat))
