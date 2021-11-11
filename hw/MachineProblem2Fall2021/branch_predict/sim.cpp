@@ -67,7 +67,7 @@ class Smith
             cout << "number of predictions:\t\t" << total_preds << endl;
             cout << "number of mispredictions:\t" << mispreds << endl;
             cout.precision(4);
-            cout << "misprediction rate:\t\t" << mispred_rate << "%" << endl;
+            cout << "misprediction rate:\t\t\t" << mispred_rate << "%" << endl;
             cout << "FINAL COUNTER CONTENT:\t\t" << count << endl;
         }
 };
