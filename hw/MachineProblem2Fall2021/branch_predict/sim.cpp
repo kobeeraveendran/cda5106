@@ -9,7 +9,7 @@ using namespace std;
 class Smith
 {
     private:
-        int mispreds = 0;
+        int mispreds = 0, total_preds = 0;
         int count, max_count;
 
     public:
@@ -26,6 +26,8 @@ class Smith
         {
             int prediction;
 
+            total_preds++;
+
             if (count > max_count / 2)
             {
                 // over the boundary; predict taken
@@ -33,8 +35,13 @@ class Smith
             }
             else
             {
-                // under the boundary; predict not-taken
+                // under the boundary; predict not taken
                 prediction = 0;
+            }
+
+            if (prediction != outcome)
+            {
+                mispreds++;
             }
 
             // update counter accordingly
@@ -50,6 +57,18 @@ class Smith
             }
 
             return prediction;
+        }
+
+        void print_results()
+        {
+            float mispred_rate = (float) mispreds / (float) total_preds * 100;
+
+            cout << "OUTPUT" << endl;
+            cout << "number of predictions:\t\t" << total_preds << endl;
+            cout << "number of mispredictions:\t" << mispreds << endl;
+            cout.precision(4);
+            cout << "misprediction rate:\t\t" << mispred_rate << "%" << endl;
+            cout << "FINAL COUNTER CONTENT:\t\t" << count << endl;
         }
 };
 
@@ -88,8 +107,6 @@ int main(int argc, char *argv[])
 
     cout << argv[argc - 1] << endl;
 
-    cout << "OUTPUT" << endl;
-
     // read from trace file
     fstream trace_file;
 
@@ -98,11 +115,19 @@ int main(int argc, char *argv[])
     if (trace_file.is_open())
     {
         string file_line, address, outcome;
+        int outcome_flag;
 
         while (trace_file >> address >> outcome)
         {
-            predictor.predict(stoi(outcome));
+            outcome_flag = (outcome == "t") ? 1 : 0;
+
+            if (pred_type == "smith")
+            {
+                predictor.predict(outcome_flag);
+            }
         }
+
+        predictor.print_results();
     }
 
 
