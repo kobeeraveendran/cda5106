@@ -7,6 +7,8 @@
 
 using namespace std;
 
+int silent = 0;
+
 class Smith
 {
     private:
@@ -64,11 +66,18 @@ class Smith
             float mispred_rate = (float) mispreds / (float) total_preds * 100;
             mispred_rate = roundf(mispred_rate * 100) / 100;
 
-            cout << "OUTPUT" << endl;
-            cout << "number of predictions:\t\t" << total_preds << endl;
-            cout << "number of mispredictions:\t" << mispreds << endl;
-            cout << "misprediction rate:\t\t\t"  << fixed << setprecision(2) << mispred_rate << "%" << endl;
-            cout << "FINAL COUNTER CONTENT:\t\t" << count << endl;
+            if (silent)
+            {
+                cout << mispred_rate << endl;
+            }
+            else
+            {
+                cout << "OUTPUT" << endl;
+                cout << "number of predictions:\t\t" << total_preds << endl;
+                cout << "number of mispredictions:\t" << mispreds << endl;
+                cout << "misprediction rate:\t\t\t"  << fixed << setprecision(2) << mispred_rate << "%" << endl;
+                cout << "FINAL COUNTER CONTENT:\t\t" << count << endl;
+            }
         }
 };
 
@@ -160,24 +169,31 @@ class Gshare
             float mispred_rate = (float) mispreds / (float) total_preds * 100;
             mispred_rate = roundf(mispred_rate * 100) / 100;
 
-            cout << "OUTPUT" << endl;
-            cout << "number of predictions:\t\t" << total_preds << endl;
-            cout << "number of mispredictions:\t" << mispreds << endl;
-            cout << "misprediction rate:\t\t\t" << fixed << setprecision(2) << mispred_rate << "%" << endl;
-
-            if (bhr_bits > 0)
+            if (silent)
             {
-                cout << "FINAL GSHARE CONTENTS" << endl;
+                cout << mispred_rate << endl;
             }
-
             else
             {
-                cout << "FINAL BIMODAL CONTENTS" << endl;
-            }
+                cout << "OUTPUT" << endl;
+                cout << "number of predictions:\t\t" << total_preds << endl;
+                cout << "number of mispredictions:\t" << mispreds << endl;
+                cout << "misprediction rate:\t\t\t" << fixed << setprecision(2) << mispred_rate << "%" << endl;
 
-            for (int i = 0; i < table.size(); i++)
-            {
-                cout << i << "\t\t" << table[i] << endl;
+                if (bhr_bits > 0)
+                {
+                    cout << "FINAL GSHARE CONTENTS" << endl;
+                }
+
+                else
+                {
+                    cout << "FINAL BIMODAL CONTENTS" << endl;
+                }
+
+                for (int i = 0; i < table.size(); i++)
+                {
+                    cout << i << "\t\t" << table[i] << endl;
+                }
             }
         }
 };
@@ -193,6 +209,12 @@ int main(int argc, char *argv[])
     {
         int counter_bits = stoi(argv[2]);
         trace_path = argv[3];
+
+        if (argc > 4)
+        {
+            silent = stoi(argv[4]);
+        }
+
         predictor = Smith(counter_bits);
     }
 
@@ -200,6 +222,12 @@ int main(int argc, char *argv[])
     {
         int pc_bits = stoi(argv[2]);
         trace_path = argv[3];
+
+        if (argc > 4)
+        {
+            silent = stoi(argv[4]);
+        }
+
         gshare_predictor = Gshare(pc_bits, 0);
     }
 
@@ -208,17 +236,26 @@ int main(int argc, char *argv[])
         int pc_bits = stoi(argv[2]);
         int bhr_bits = stoi(argv[3]);
         trace_path = argv[4];
+
+        if (argc > 5)
+        {
+            silent = stoi(argv[5]);
+        }
+
         gshare_predictor = Gshare(pc_bits, bhr_bits);
     }
 
-    cout << "COMMAND" << endl;
-    
-    for (int i = 0; i < argc - 1; i++)
+    if (!silent)
     {
-        cout << argv[i] << " ";
-    }
+        cout << "COMMAND" << endl;
+        
+        for (int i = 0; i < argc - 1; i++)
+        {
+            cout << argv[i] << " ";
+        }
 
-    cout << argv[argc - 1] << endl;
+        cout << argv[argc - 1] << endl;
+    }
 
     // read from trace file
     fstream trace_file;
