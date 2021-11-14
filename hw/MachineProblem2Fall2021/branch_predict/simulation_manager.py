@@ -3,17 +3,22 @@ import time
 import subprocess
 import os
 
-def graph(title, x_label, y_label, x, y, legend_names = None):
+
+def graph(title, x_label, y_label, x, y, legend_label = None):
 
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel(y_label)
 
-    if not legend_names:
+    if not legend_label:
         plt.plot(x, y)
+    else:
+        plt.plot(x, y, label = legend_label)
+        plt.legend(title = 'n', loc = "upper right")
 
-    plt.savefig("graph_logs/{}.png".format(title.replace(', ', '_')))
-    plt.clf()
+    if not legend_label:
+        plt.savefig("graph_logs/{}.png".format(title.replace(', ', '_')))
+        plt.clf()
 
 if __name__ == "__main__":
 
@@ -79,5 +84,42 @@ if __name__ == "__main__":
     for benchmark in y.keys():
         benchmark_name = benchmark.split('_')[0].upper()
         graph(benchmark_name + ", bimodal", 'm', "Misprediction Rate (%)", x, y[benchmark])
+
+    # graph 3: Gshare predictor
+    for key in y.keys():
+        y[key] = {}
+
+    g3_count = 0
+
+    for benchmark in y.keys():
+        for m in x:
+            for n in range(2, m + 1, 2):
+                y[benchmark].setdefault(n, [])
+
+                mispred_rate = subprocess.run(
+                    ["./sim", "gshare", str(m), str(n), benchmark, '1'], 
+                    capture_output = True
+                ).stdout
+
+                mispred_rate = float(mispred_rate)
+                y[benchmark][n].append(mispred_rate)
+
+                print("(graph 3 - gshare): m = {}\t | n = {}\t | benchmark = {}\t | misprediction rate: {}".format(m, n, benchmark, mispred_rate))
+                g3_count += 1
+
+            print('-' * 110)
+
+        print('-' * 110)
+
+    print("GRAPH 3 (Gshare) SIMULATIONS RUN: ", g3_count)
+
+    for benchmark in y.keys():
+        benchmark_name = benchmark.split('_')[0].upper()
+
+        for n, vals in y[benchmark].items():
+            graph(benchmark_name + ", Gshare", 'm', "Misprediction Rate (%)", x[-len(vals):], vals, n)
+
+        plt.savefig("graph_logs/{}_gshare.png".format(benchmark_name))
+        plt.clf()
 
     os.system("make clean")
