@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[legalpaper, portrait, margin=0.8in]{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\title{Machine Problem 2: Branch Prediction}
+\author{Kobee Raveendran}
+\date{November 12, 2021}
+
+\begin{document}
+    \begin{titlepage}
+        
+        \maketitle
+        \null  % Empty line
+        \nointerlineskip  % No skip for prev line
+        \vfill
+        \let\snewpage \newpage
+        \let\newpage \relax
+        \centering
+        {\large \textbf{Honor Pledge: ``I have neither given nor received unauthorized aid on this test or assignment.''}}
+        
+        \centering {\large Student's electronic signature: \underline{ Kobee Raveendran }}
+
+        \vspace{6cm}
+        {\large \textbf{University of Central Florida}}
+        
+        \vspace{1cm}
+
+        {\large \textbf{Department of Computer Science}}
+
+        \vspace{1cm}
+
+        {\large \textbf{CDA5106: Advanced Computer Architecture}}
+
+        \vspace{1cm}
+
+        {\large \textbf{Fall 2021}}
+        \let \newpage \snewpage
+        \vfill 
+        \break % page break
+
+    \end{titlepage}
+
+    \section{N-bit Smith Counter}
+
+    \begin{center}
+
+        \includegraphics[scale=0.83]{../graph_logs/GCC_Smith.png}
+        \includegraphics[scale=0.83]{../graph_logs/JPEG_Smith.png}
+        \includegraphics[scale=0.83]{../graph_logs/PERL_Smith.png}
+
+    \end{center}
+
+    \section{Bimodal Predictor}
+
+    \begin{center}
+        
+        \includegraphics[scale=0.83]{../graph_logs/GCC_bimodal.png}
+        \includegraphics[scale=0.83]{../graph_logs/JPEG_bimodal.png}
+        \includegraphics[scale=0.83]{../graph_logs/PERL_bimodal.png}
+
+    \end{center}
+
+    \section{Gshare Predictor}
+
+    \begin{center}
+        
+        \includegraphics[scale=0.83]{../graph_logs/GCC_gshare.png}
+        \includegraphics[scale=0.83]{../graph_logs/JPEG_gshare.png}
+        \includegraphics[scale=0.83]{../graph_logs/PERL_gshare.png}
+    \end{center}
+
+\end{document}
