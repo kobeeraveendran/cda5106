@@ -1,0 +1,153 @@
+rm -f *.o sim
+g++    -c -o sim.o sim.cpp
+g++ -o sim -O3 -Wall   sim.o -lm
+-----------DONE WITH SIM-----------
+my work is done here...
+(graph 1 - Smith): b = 1 | benchmark = gcc_trace.txt	 | misprediction rate: 45.24
+(graph 1 - Smith): b = 2 | benchmark = gcc_trace.txt	 | misprediction rate: 43.01
+(graph 1 - Smith): b = 3 | benchmark = gcc_trace.txt	 | misprediction rate: 41.57
+(graph 1 - Smith): b = 4 | benchmark = gcc_trace.txt	 | misprediction rate: 41.68
+(graph 1 - Smith): b = 5 | benchmark = gcc_trace.txt	 | misprediction rate: 41.33
+(graph 1 - Smith): b = 6 | benchmark = gcc_trace.txt	 | misprediction rate: 41.94
+-------------------------------------------------------------------------------------
+(graph 1 - Smith): b = 1 | benchmark = jpeg_trace.txt	 | misprediction rate: 50.02
+(graph 1 - Smith): b = 2 | benchmark = jpeg_trace.txt	 | misprediction rate: 30.98
+(graph 1 - Smith): b = 3 | benchmark = jpeg_trace.txt	 | misprediction rate: 29.12
+(graph 1 - Smith): b = 4 | benchmark = jpeg_trace.txt	 | misprediction rate: 28.14
+(graph 1 - Smith): b = 5 | benchmark = jpeg_trace.txt	 | misprediction rate: 28.0
+(graph 1 - Smith): b = 6 | benchmark = jpeg_trace.txt	 | misprediction rate: 27.94
+-------------------------------------------------------------------------------------
+(graph 1 - Smith): b = 1 | benchmark = perl_trace.txt	 | misprediction rate: 47.66
+(graph 1 - Smith): b = 2 | benchmark = perl_trace.txt	 | misprediction rate: 47.98
+(graph 1 - Smith): b = 3 | benchmark = perl_trace.txt	 | misprediction rate: 48.65
+(graph 1 - Smith): b = 4 | benchmark = perl_trace.txt	 | misprediction rate: 46.74
+(graph 1 - Smith): b = 5 | benchmark = perl_trace.txt	 | misprediction rate: 47.55
+(graph 1 - Smith): b = 6 | benchmark = perl_trace.txt	 | misprediction rate: 47.69
+-------------------------------------------------------------------------------------
+GRAPH 1 (Smith) SIMULATIONS RUN:  18
+(graph 2 - bimodal): m = 7	 | benchmark = gcc_trace.txt	 | misprediction rate: 25.72
+(graph 2 - bimodal): m = 8	 | benchmark = gcc_trace.txt	 | misprediction rate: 21.66
+(graph 2 - bimodal): m = 9	 | benchmark = gcc_trace.txt	 | misprediction rate: 18.0
+(graph 2 - bimodal): m = 10	 | benchmark = gcc_trace.txt	 | misprediction rate: 15.33
+(graph 2 - bimodal): m = 11	 | benchmark = gcc_trace.txt	 | misprediction rate: 13.46
+(graph 2 - bimodal): m = 12	 | benchmark = gcc_trace.txt	 | misprediction rate: 12.3
+-------------------------------------------------------------------------------------
+(graph 2 - bimodal): m = 7	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.85
+(graph 2 - bimodal): m = 8	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.75
+(graph 2 - bimodal): m = 9	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.69
+(graph 2 - bimodal): m = 10	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.65
+(graph 2 - bimodal): m = 11	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.51
+(graph 2 - bimodal): m = 12	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.49
+-------------------------------------------------------------------------------------
+(graph 2 - bimodal): m = 7	 | benchmark = perl_trace.txt	 | misprediction rate: 20.6
+(graph 2 - bimodal): m = 8	 | benchmark = perl_trace.txt	 | misprediction rate: 16.17
+(graph 2 - bimodal): m = 9	 | benchmark = perl_trace.txt	 | misprediction rate: 13.79
+(graph 2 - bimodal): m = 10	 | benchmark = perl_trace.txt	 | misprediction rate: 11.62
+(graph 2 - bimodal): m = 11	 | benchmark = perl_trace.txt	 | misprediction rate: 10.59
+(graph 2 - bimodal): m = 12	 | benchmark = perl_trace.txt	 | misprediction rate: 8.94
+-------------------------------------------------------------------------------------
+GRAPH 2 (bimodal) SIMULATIONS RUN:  18
+(graph 3 - gshare): m = 7	 | n = 2	 | benchmark = gcc_trace.txt	 | misprediction rate: 27.81
+(graph 3 - gshare): m = 7	 | n = 4	 | benchmark = gcc_trace.txt	 | misprediction rate: 28.95
+(graph 3 - gshare): m = 7	 | n = 6	 | benchmark = gcc_trace.txt	 | misprediction rate: 31.1
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 8	 | n = 2	 | benchmark = gcc_trace.txt	 | misprediction rate: 23.56
+(graph 3 - gshare): m = 8	 | n = 4	 | benchmark = gcc_trace.txt	 | misprediction rate: 24.96
+(graph 3 - gshare): m = 8	 | n = 6	 | benchmark = gcc_trace.txt	 | misprediction rate: 27.53
+(graph 3 - gshare): m = 8	 | n = 8	 | benchmark = gcc_trace.txt	 | misprediction rate: 29.53
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 9	 | n = 2	 | benchmark = gcc_trace.txt	 | misprediction rate: 19.94
+(graph 3 - gshare): m = 9	 | n = 4	 | benchmark = gcc_trace.txt	 | misprediction rate: 20.84
+(graph 3 - gshare): m = 9	 | n = 6	 | benchmark = gcc_trace.txt	 | misprediction rate: 23.47
+(graph 3 - gshare): m = 9	 | n = 8	 | benchmark = gcc_trace.txt	 | misprediction rate: 25.49
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 10	 | n = 2	 | benchmark = gcc_trace.txt	 | misprediction rate: 16.95
+(graph 3 - gshare): m = 10	 | n = 4	 | benchmark = gcc_trace.txt	 | misprediction rate: 18.0
+(graph 3 - gshare): m = 10	 | n = 6	 | benchmark = gcc_trace.txt	 | misprediction rate: 19.88
+(graph 3 - gshare): m = 10	 | n = 8	 | benchmark = gcc_trace.txt	 | misprediction rate: 21.22
+(graph 3 - gshare): m = 10	 | n = 10	 | benchmark = gcc_trace.txt	 | misprediction rate: 22.52
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 11	 | n = 2	 | benchmark = gcc_trace.txt	 | misprediction rate: 14.46
+(graph 3 - gshare): m = 11	 | n = 4	 | benchmark = gcc_trace.txt	 | misprediction rate: 15.05
+(graph 3 - gshare): m = 11	 | n = 6	 | benchmark = gcc_trace.txt	 | misprediction rate: 17.06
+(graph 3 - gshare): m = 11	 | n = 8	 | benchmark = gcc_trace.txt	 | misprediction rate: 17.75
+(graph 3 - gshare): m = 11	 | n = 10	 | benchmark = gcc_trace.txt	 | misprediction rate: 18.84
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 12	 | n = 2	 | benchmark = gcc_trace.txt	 | misprediction rate: 12.53
+(graph 3 - gshare): m = 12	 | n = 4	 | benchmark = gcc_trace.txt	 | misprediction rate: 13.4
+(graph 3 - gshare): m = 12	 | n = 6	 | benchmark = gcc_trace.txt	 | misprediction rate: 14.47
+(graph 3 - gshare): m = 12	 | n = 8	 | benchmark = gcc_trace.txt	 | misprediction rate: 15.16
+(graph 3 - gshare): m = 12	 | n = 10	 | benchmark = gcc_trace.txt	 | misprediction rate: 15.69
+(graph 3 - gshare): m = 12	 | n = 12	 | benchmark = gcc_trace.txt	 | misprediction rate: 16.28
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 7	 | n = 2	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.41
+(graph 3 - gshare): m = 7	 | n = 4	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.65
+(graph 3 - gshare): m = 7	 | n = 6	 | benchmark = jpeg_trace.txt	 | misprediction rate: 9.49
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 8	 | n = 2	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.04
+(graph 3 - gshare): m = 8	 | n = 4	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.2
+(graph 3 - gshare): m = 8	 | n = 6	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.82
+(graph 3 - gshare): m = 8	 | n = 8	 | benchmark = jpeg_trace.txt	 | misprediction rate: 9.07
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 9	 | n = 2	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.94
+(graph 3 - gshare): m = 9	 | n = 4	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.04
+(graph 3 - gshare): m = 9	 | n = 6	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.46
+(graph 3 - gshare): m = 9	 | n = 8	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.32
+--------------------------------------------------------------------------------------------------------------rm -f *.o sim
+
+(graph 3 - gshare): m = 10	 | n = 2	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.87
+(graph 3 - gshare): m = 10	 | n = 4	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.97
+(graph 3 - gshare): m = 10	 | n = 6	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.37
+(graph 3 - gshare): m = 10	 | n = 8	 | benchmark = jpeg_trace.txt	 | misprediction rate: 8.05
+(graph 3 - gshare): m = 10	 | n = 10	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.98
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 11	 | n = 2	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.45
+(graph 3 - gshare): m = 11	 | n = 4	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.62
+(graph 3 - gshare): m = 11	 | n = 6	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.9
+(graph 3 - gshare): m = 11	 | n = 8	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.5
+(graph 3 - gshare): m = 11	 | n = 10	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.47
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 12	 | n = 2	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.43
+(graph 3 - gshare): m = 12	 | n = 4	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.6
+(graph 3 - gshare): m = 12	 | n = 6	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.84
+(graph 3 - gshare): m = 12	 | n = 8	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.28
+(graph 3 - gshare): m = 12	 | n = 10	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.3
+(graph 3 - gshare): m = 12	 | n = 12	 | benchmark = jpeg_trace.txt	 | misprediction rate: 7.35
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 7	 | n = 2	 | benchmark = perl_trace.txt	 | misprediction rate: 21.28
+(graph 3 - gshare): m = 7	 | n = 4	 | benchmark = perl_trace.txt	 | misprediction rate: 24.78
+(graph 3 - gshare): m = 7	 | n = 6	 | benchmark = perl_trace.txt	 | misprediction rate: 28.72
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 8	 | n = 2	 | benchmark = perl_trace.txt	 | misprediction rate: 17.47
+(graph 3 - gshare): m = 8	 | n = 4	 | benchmark = perl_trace.txt	 | misprediction rate: 19.0
+(graph 3 - gshare): m = 8	 | n = 6	 | benchmark = perl_trace.txt	 | misprediction rate: 22.63
+(graph 3 - gshare): m = 8	 | n = 8	 | benchmark = perl_trace.txt	 | misprediction rate: 23.39
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 9	 | n = 2	 | benchmark = perl_trace.txt	 | misprediction rate: 14.58
+(graph 3 - gshare): m = 9	 | n = 4	 | benchmark = perl_trace.txt	 | misprediction rate: 16.11
+(graph 3 - gshare): m = 9	 | n = 6	 | benchmark = perl_trace.txt	 | misprediction rate: 18.19
+(graph 3 - gshare): m = 9	 | n = 8	 | benchmark = perl_trace.txt	 | misprediction rate: 17.69
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 10	 | n = 2	 | benchmark = perl_trace.txt	 | misprediction rate: 11.52
+(graph 3 - gshare): m = 10	 | n = 4	 | benchmark = perl_trace.txt	 | misprediction rate: 13.19
+(graph 3 - gshare): m = 10	 | n = 6	 | benchmark = perl_trace.txt	 | misprediction rate: 13.78
+(graph 3 - gshare): m = 10	 | n = 8	 | benchmark = perl_trace.txt	 | misprediction rate: 12.64
+(graph 3 - gshare): m = 10	 | n = 10	 | benchmark = perl_trace.txt	 | misprediction rate: 13.66
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 11	 | n = 2	 | benchmark = perl_trace.txt	 | misprediction rate: 9.91
+(graph 3 - gshare): m = 11	 | n = 4	 | benchmark = perl_trace.txt	 | misprediction rate: 11.03
+(graph 3 - gshare): m = 11	 | n = 6	 | benchmark = perl_trace.txt	 | misprediction rate: 12.03
+(graph 3 - gshare): m = 11	 | n = 8	 | benchmark = perl_trace.txt	 | misprediction rate: 9.29
+(graph 3 - gshare): m = 11	 | n = 10	 | benchmark = perl_trace.txt	 | misprediction rate: 8.91
+--------------------------------------------------------------------------------------------------------------
+(graph 3 - gshare): m = 12	 | n = 2	 | benchmark = perl_trace.txt	 | misprediction rate: 8.83
+(graph 3 - gshare): m = 12	 | n = 4	 | benchmark = perl_trace.txt	 | misprediction rate: 9.42
+(graph 3 - gshare): m = 12	 | n = 6	 | benchmark = perl_trace.txt	 | misprediction rate: 10.0
+(graph 3 - gshare): m = 12	 | n = 8	 | benchmark = perl_trace.txt	 | misprediction rate: 6.97
+(graph 3 - gshare): m = 12	 | n = 10	 | benchmark = perl_trace.txt	 | misprediction rate: 6.42
+(graph 3 - gshare): m = 12	 | n = 12	 | benchmark = perl_trace.txt	 | misprediction rate: 6.88
+--------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------
+GRAPH 3 (Gshare) SIMULATIONS RUN:  81
