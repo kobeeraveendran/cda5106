@@ -11,9 +11,9 @@ def graph(title, x_label, y_label, x, y, legend_label = None):
     plt.ylabel(y_label)
 
     if not legend_label:
-        plt.plot(x, y)
+        plt.plot(x, y, marker = 'o')
     else:
-        plt.plot(x, y, label = legend_label)
+        plt.plot(x, y, marker = 'o', label = legend_label)
         plt.legend(title = 'n', loc = "upper right")
 
     if not legend_label:
