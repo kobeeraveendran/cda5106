@@ -74,6 +74,136 @@
 
         \subsubsection{Exercises}
 
+			\begin{enumerate}
+				\item Suppose that instead of progressing at a ratio of 0.7, Moore’s law slows down and transistor gate length scales at a ratio of 0.8 instead. Find the dynamic power consumption under \textit{unlimited} and \textit{limited} scaling for the next process generation.
+
+				\begin{itemize}
+					\item Unlimited/old scaling rule
+					\begin{itemize}
+						\item gate length scales by $S = 0.8$
+						\item capacitance scales by $S = 0.8$
+						\item original area scales by $S^2 = 0.64$
+						\item num transistors thus scales by $\frac{1}{S^2} = 1.56$
+						\item supply voltage scales by $S = 0.8$
+						\item frequency scales by $\frac{1}{S} = 1.25$
+						\item dynamic power stays constant:
+					
+						$P_{dyn} = (1.56A)(0.8C)(0.8V)^2(1.25f)$
+					\end{itemize}
+					
+					\item leakage-limited/new scaling
+					\begin{itemize}
+						\item capacitance scales by $S = 0.8$
+						\item num transistors scales by $\frac{1}{S^2} = 1.56$
+						\item supply voltage does not scale without scaling threshold voltage too, which increases static power exponentially
+						\item frequency scales by $\frac{1}{S} 1.25$
+						\item dynamic power consumption increases:
+
+						$P_{dyn}' = (1.56A)(0.8C)(V)^2(1.25f) = 1.56 \cdot P_{dyn}$
+				\end{itemize}
+
+				\item With limited voltage scaling, suppose that we want to keep the dynamic power consumption constant in the next generation by keeping frequency constant and reduce die area. How much should we reduce die area to achieve that?
+				\begin{itemize}
+				\item gate length scales by $S = 0.7$
+				\item capacitance scales by $S = 0.7$
+				\item original area scales by $S^2 = 0.5$
+				\item supply voltage and frequency are constant
+				\item dynamic power consumption must stay constant: $P_{dyn}' = P_{dyn}$
+
+				$ACV^2f = A'(0.7C)V^2f \longrightarrow A = 0.7A'$
+
+				\item number of transistors in the next generation: $A' = 1.4A$ (instead of 2A like before; i.e. 70\% of 2A)
+				\item thus die area shrinks by 30\%
+				\end{itemize}
+
+				\item Describe the difference between energy and power.
+
+				Power is the rate of energy consumption.
+
+				\item Describe the impact of threshold voltage choice on static and dynamic power consumption as transistors are scaled down.
+
+				If threshold voltage is lowered, dynamic power decreases (nearly linearly) but static power increases exponentially.
+
+				\item How has processor design adapted to the power wall problem?
+
+				Stalling frequency growth, multicore, and sophisticated power management (clock gating, voltage and frequency scaling, power gating).
+			\end{enumerate}
+
     \end{itemize}
+
+	\subsubsection{Overview of ILP Techniques}
+
+	Caches example
+
+	\begin{itemize}
+		\item processor with 1-ns clock
+		\item 64KB cache memory with 2-ns read time, 95\% hitrate
+		\item 512MB main memory with 150-ns read time
+		\item What is the average access time (AAT) in this memory system?
+	\end{itemize}
+
+	Answer:
+	\begin{itemize}
+		\item hits: $95 \cdot 2$ ns, misses: $5 \cdot (2 + 150)$ ns
+		\item total = hit time + miss time = $190 + (10 + 750) = 950 ns$
+		\item AAT = $\frac{total}{100} = 9.5ns$
+	\end{itemize}
+
+	\section{Module 2: Performance, Cost, and Reliability of Microprocessors}
+
+	\subsection{Performance Evaluation 1}
+
+	\subsubsection{Amdahl's Law}
+
+	\begin{itemize}
+		\item performance improvement (``speedup'') is limited by the part you can't improve
+		\item (s) $Speedup_{enhanced} =$ best case speedup from gizmo alone
+		\item (f) $Fraction_{enhanced} =$ fraction of task that gizmo can enhance
+		\item $s_{overall} = \frac{1}{(1 - f) + \frac{f}{s}}$
+	\end{itemize}
+
+	Example:
+
+	\begin{itemize}
+		\item jet plane wing simulation, where 1 run takes 1 week on your computer
+		\item your program is 80\% parallelizable
+		\item new supercomputer has 100,000 processors
+		\item $s = 100,000$
+		\item $f = 0.8$
+		\item overall speedup: $s_{overall} = \frac{1}{(1 - f) + \frac{f}{s} = \frac{1}{(1 - 0.8) + \frac{0.8}{100000}} \approx \frac{1}{0.2} = 5$
+		\item only about 5 times faster (33 hours instead of 1 week), but not worth the high price tag (using a cheaper computer with only 100 processors instead yields a 4.8X speedup!)
+	\end{itemize}
+
+	More examples:
+
+	Ex 1:
+
+	\begin{itemize}
+		\item $f = 0.95$
+		\item $s = 1.10$
+		\item $s_{overall} = \frac{1}{(1-0.95) + \frac{0.95}{1.10}} = 1.094 \approx 1.10$
+	\end{itemize}
+
+	Ex 2:
+
+	\begin{itemize}
+		\item $f = 0.05$
+		\item $s \rightarrow \infinity$
+		\item $s_{overall} = 1.053$
+	\end{itemize}
+
+	\subsubsection{Run Time}
+
+	\begin{itemize}
+		\item CPU time = clock cycle count $\times$ cycle time
+		\item cycles per instruction (CPI) = $\frac{clock cycle count}{instruction count}$
+		\item CPU time = IC $\times$ CPI $\times$ CT
+	\end{itemize}
+
+	\subsection{Performance Evaluation 2}
+
+	\begin{itemize}
+		\item 
+	\end{itemize}
 
 \end{document}
