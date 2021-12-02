@@ -100,20 +100,21 @@
 						\item dynamic power consumption increases:
 
 						$P_{dyn}' = (1.56A)(0.8C)(V)^2(1.25f) = 1.56 \cdot P_{dyn}$
+					\end{itemize}
 				\end{itemize}
 
 				\item With limited voltage scaling, suppose that we want to keep the dynamic power consumption constant in the next generation by keeping frequency constant and reduce die area. How much should we reduce die area to achieve that?
 				\begin{itemize}
-				\item gate length scales by $S = 0.7$
-				\item capacitance scales by $S = 0.7$
-				\item original area scales by $S^2 = 0.5$
-				\item supply voltage and frequency are constant
-				\item dynamic power consumption must stay constant: $P_{dyn}' = P_{dyn}$
+					\item gate length scales by $S = 0.7$
+					\item capacitance scales by $S = 0.7$
+					\item original area scales by $S^2 = 0.5$
+					\item supply voltage and frequency are constant
+					\item dynamic power consumption must stay constant: $P_{dyn}' = P_{dyn}$
 
-				$ACV^2f = A'(0.7C)V^2f \longrightarrow A = 0.7A'$
+					$ACV^2f = A'(0.7C)V^2f \longrightarrow A = 0.7A'$
 
-				\item number of transistors in the next generation: $A' = 1.4A$ (instead of 2A like before; i.e. 70\% of 2A)
-				\item thus die area shrinks by 30\%
+					\item number of transistors in the next generation: $A' = 1.4A$ (instead of 2A like before; i.e. 70\% of 2A)
+					\item thus die area shrinks by 30\%
 				\end{itemize}
 
 				\item Describe the difference between energy and power.
@@ -170,7 +171,7 @@
 		\item new supercomputer has 100,000 processors
 		\item $s = 100,000$
 		\item $f = 0.8$
-		\item overall speedup: $s_{overall} = \frac{1}{(1 - f) + \frac{f}{s} = \frac{1}{(1 - 0.8) + \frac{0.8}{100000}} \approx \frac{1}{0.2} = 5$
+		\item overall speedup: $s_{overall} = \frac{1}{(1 - f) + \frac{f}{s}} = \frac{1}{(1 - 0.8) + \frac{0.8}{100000}} \approx \frac{1}{0.2} = 5$
 		\item only about 5 times faster (33 hours instead of 1 week), but not worth the high price tag (using a cheaper computer with only 100 processors instead yields a 4.8X speedup!)
 	\end{itemize}
 
@@ -188,7 +189,7 @@
 
 	\begin{itemize}
 		\item $f = 0.05$
-		\item $s \rightarrow \infinity$
+		\item $s \rightarrow \infty$
 		\item $s_{overall} = 1.053$
 	\end{itemize}
 
@@ -196,7 +197,7 @@
 
 	\begin{itemize}
 		\item CPU time = clock cycle count $\times$ cycle time
-		\item cycles per instruction (CPI) = $\frac{clock cycle count}{instruction count}$
+		\item cycles per instruction (CPI) = $\frac{\texttt{clock cycle count}}{\texttt{instruction count}}$
 		\item CPU time = IC $\times$ CPI $\times$ CT
 	\end{itemize}
 
