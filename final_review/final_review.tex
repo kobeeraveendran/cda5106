@@ -2,6 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[legalpaper, portrait, margin=0.8in]{geometry}
 \usepackage{amssymb}
+\usepackage{amsmath}
 
 \title{CDA5106 - Advanced Computer Architecture \\ Final Exam Review}
 \author{Kobee Raveendran}
@@ -203,8 +204,158 @@
 
 	\subsection{Performance Evaluation 2}
 
+	Determine speedup by comparing program times with respect to a reference machine.
+
+	
+
 	\begin{itemize}
-		\item 
+		\item arithmetic mean (which one should we trust?):
+		
+		\begin{tabular}[h!]{|c|c|c|c|} \hline
+					   & Computer A & Computer B & B vs. A   \\ \hline
+			Program P1 & 2X faster  & 4X faster  & 2X faster \\ \hline
+			Program P2 & 5X faster  & 15X faster & 3X faster \\ \hline
+			Average	   & 3.5X		& 9.5X		 &			 \\ \hline
+		\end{tabular}
+
+		Speedups:
+
+		\begin{itemize}
+			\item method 1: program-wise $\longrightarrow \frac{2 + 3}{2} = 2.5$X faster
+			\item method 2: machine-wise $\longrightarrow \frac{9.5}{3.5} = 2.71$X faster
+		\end{itemize}
+
+		\item geometric mean (consistent):
+		
+		$\displaystyle gmean = \sqrt[n]{\prod_{i = 1}^n} = exp(\frac{\frac{1}{n} \sum_{i=1}^n \ln (x_i)}{n})$
+
+		\begin{tabular}[h!]{|c|c|c|c|} \hline
+					   & Computer A 	& Computer B 	& B vs. A   	\\ \hline
+			Program P1 & 2X faster  	& 4X faster  	& 2X faster 	\\ \hline
+			Program P2 & 5X faster  	& 15X faster 	& 3X faster 	\\ \hline
+			Average	   & $\sqrt{10}$	& $\sqrt{60}$	& $\sqrt{6}$	\\ \hline
+		\end{tabular}
+
+		Speedups:
+
+		\begin{itemize}
+			\item method 1: program-wise $\longrightarrow$ B is $\sqrt{2 \cdot 3} = \sqrt{6}$X faster
+			\item method 2: machine-wise $\longrightarrow$ B is $\sqrt{60} \cdot \sqrt{10} = \sqrt{6}$X faster
+		\end{itemize}
+
+		\item (also important): geometric standard deviation
+		
+		$\displaystyle gstdev = exp(\sqrt{\frac{\prod_{i=1}^n (\ln x_i - \ln gmean)^2}{n}})$
+
+		in plain English: for each ``component'' speedup vs. ref machine, take its natural log and subtract the natural 
+		log of the gmean from that. Square it and multiply all of these together, then divide by n. Finally take the 
+		square root of this, then take $e$ to the power of the result.
 	\end{itemize}
+
+	\subsubsection{Exercises}
+
+	Given the following table of speedups for machines A and B relative to a reference machine:
+
+	\begin{tabular}[h!]{|c|c|c|c|} \hline
+		Prog	& X (secs)	& A (secs)	& B	(secs)	\\ \hline
+		App 1	& 30		& 15		& 10		\\ \hline
+		App 2	& 20		& 15		& 10		\\ \hline
+		App 3	& 40		& 20		& 30		\\ \hline
+		App 4	& 15		& 20		& 15		\\ \hline
+	\end{tabular}
+
+	Compute the following (see post-computation table below to find them all):
+
+	\begin{itemize}
+		\item geometric speedup of machine A vs. base machine X
+		
+		from the table, we find that A has a 1.41X speedup over X
+
+		\item geometric speedup of machine B vs. base machine X
+		
+		from the table, we find that B has a 1.68X speedup over X
+
+		\item geometric speedup of machine B vs. machine A
+		
+		from the table, we find that B has a 1.19X speedup over A
+
+		\item geometric standard deviation of the speedup of machine A over machine X
+		
+		$gstd = exp(\sqrt{\frac{1}{4} \cdot \ln^2(\frac{2}{1.41}) \ln^2(\frac{1.33}{1.41}) \ln^2(\frac{2}{1.41}) \ln^2(\frac{0.75}{1.41})})$
+
+		$gstd = 1.002255... \approx 1$
+
+	\end{itemize}
+
+	\begin{tabular}[h!]{|c|c|c|c|} \hline
+		Prog		& A vs. X	& B vs. X	& B vs. A	\\ \hline
+		App 1		& 2X		& 3X		& 1.5X		\\ \hline
+		App 2		& 1.33X		& 2X		& 1.5X		\\ \hline
+		App 3		& 2X		& 1.33X		& 0.67X		\\ \hline
+		App 4		& 0.75X		& 1X		& 1.33X		\\ \hline
+		\bf{Product}& 4X		& 8X		& 2X		\\ \hline
+		\bf{gmean}	& 1.41X		& 1.68X		& \bf{1.19X}\\ \hline
+	\end{tabular}
+
+	\subsection{Cost and Reliability}
+
+	\subsubsection{Failure Rates ($\lambda$)}
+
+	\begin{itemize}
+		\item $\lambda$ = the number of failures that occur per unit time in a component/system
+		\item FIT (failure in time) = number of failures in $10^9$ hours
+		\item example: 10,000 microprocessor chips used for 1,000 hours, and 8 of them fail. Failure rate is thus 
+		$\frac{8}{10,000 \cdot 1,000} = 8 \cdot 10^{-7}$ (failures per hour per chip) $\cdot 10^9$ hours = 800 FITs
+	\end{itemize}
+
+	\subsubsection{Reliability Metrics}
+
+	\begin{itemize}
+		\item $R(t)$ = probability that the system still works correctly at time $t$
+		\item $W_N(t)$ = number of items (of the same kind) that would still be working at time $t$
+		\item if $\lambda$ is constant, then $R(t) = e^{-\lambda t}$
+		\item Mean Time Between Failure (MTBF) = $\frac{1}{\lambda}$
+	\end{itemize}
+
+	\subsubsection{System Reliability}
+
+	Assume that:
+
+	\begin{itemize}
+		\item $M$ components are in the system with failure rates $\lambda_1, \lambda_2, ..., \lambda_m$
+		\item for the system to work properly, all components must also work properly
+		\item a component's reliability is independent of any other component's reliability
+		\item then, system failure rate = sum of component's failure rates
+		\item $R_{sys}(t) = R_1(t) \cdot R_2(t) \cdot ... \cdot R_m(t) = e^{-\lambda_1 t \cdot ... \cdot -\lambda_mt}$
+		$= e^{-(\lambda_1 + \lambda_2 + ... + \lambda_m)t} = e^{-\lambda_{sys}t}$
+	\end{itemize}
+
+	Other metrics:
+
+	\begin{itemize}
+		\item Mean Time To Repair (MTTR): mean time to repair/recover from a fault
+		\item Mean Time Between Failure (MTBF): mean time between 2 consecutive failures
+		\item if each failure is repaired, then MTBF = MTTF + MTTR
+		\item usually, MTTF $\gg$ MTTR, so MTBF and MTTF are often interchangeable
+	\end{itemize}
+
+	\subsubsection{Examples}
+
+	Assume a disk subsystem with:
+
+	\begin{itemize}
+		\item 10 disks each rated at $10^6$-hour MTTF
+		\item 1 SCSI controller rated at $5 \cdot 10^5$-hour MTTF
+		\item 1 power supply rated at $2 \cdot 10^5$-hour MTTF
+		\item 1 fan rated at $2 \cdot 10^5$-hour MTTF
+		\item 1 SCSI cable rated at $10^6$-hour MTTF
+	\end{itemize}
+
+	Find the failure rate of the entire disk subsystem.
+
+	$R_{sys}(t) = 10 \cdot \frac{1}{10^6} + \frac{1}{5 \cdot 10^5} + \frac{2}{2 \cdot 10^5} + \frac{1}{10^6}$
+	$			= \frac{10 + 2 + 5 + 5 + 1}{10^6} = \frac{23}{10^6} = \frac{23,000}{10^9} = 23,000$ FIT
+
+	Thus, MTTF = $\frac{1}{\lambda_{sys}} = \frac{1}{23,000} \cdot 10^9 \approx 43,500$ hours
 
 \end{document}
