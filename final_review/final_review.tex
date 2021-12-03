@@ -358,4 +358,225 @@
 
 	Thus, MTTF = $\frac{1}{\lambda_{sys}} = \frac{1}{23,000} \cdot 10^9 \approx 43,500$ hours
 
+	\section{Instruction Set Design}
+
+	\subsection{Instruction Set Architecture 1}
+
+	\subsubsection{Styles of ISAs}
+
+	\begin{itemize}
+		\item Stack:
+		\begin{itemize}
+			\item \texttt{push <addr>, pop <addr>} (or ALU instructions)
+			\item ALU: pop two entries, perform ALU operation, push result onto stack
+			\item compact instruction format
+			\begin{itemize}
+				\item all calculation operations take 0 operands
+				\item flexible; used for compiling Java bytecode (not dependent on registers in architecture [but all 
+				have stacks])
+			\end{itemize}
+		\end{itemize}
+
+		\item Accumulator:
+		\begin{itemize}
+			\item \texttt{load/store/ALU <addr>} (result affects accumulator register)
+			\item also very compact (all operations take 1 operand, the other is implicitly the accumulator register)
+			\item less dependence on memory than stack-based
+		\end{itemize}
+
+		\item Register-memory:
+		\begin{itemize}
+			\item \texttt{load/store/ALU <reg>, <reg/addr>}
+			\begin{itemize}
+				\item at most one operand can be a memory address
+				\item leftmost register is the destination (if applicable)
+			\end{itemize}
+		\end{itemize}
+
+		\item Load-Store:
+		\begin{itemize}
+			\item \texttt{load/store <reg>, <addr>}
+			\item ex: \texttt{ALU <reg1>, <reg2>, <reg3>}: reg1 is destination, other 2 are source registers
+		\end{itemize}
+	\end{itemize}
+
+	Example for adding two numbers:
+
+	\begin{tabular}[ht!]{|c|c|c|c|} \hline
+		Stack	& Accumulator	& Register-memory	& Load-Store	\\ \hline
+		push A	& load A		& load R1 A			& load R1 A		\\ \hline
+		push B	& add B			& add R1 B			& load R2 B		\\ \hline
+		add		& store C		& store C R1		& add R3 R1 R2	\\ \hline
+		pop C	& 				& 					& store C R3	\\ \hline
+	\end{tabular}
+
+	Pros/cons:
+
+	\begin{itemize}
+		\item load-store
+		\begin{itemize}
+			\item (+) fixed length instructions possible (allows for easy fetch/decode)
+			\item (+) simpler hardware: efficient pipeline and potentially lower cycle time
+			\item (-) higher instruction count
+			\item (-) fixed-length instructions can be wasteful (more bits than needed for some instructions)
+		\end{itemize}
+
+		\item register-memory
+		\begin{itemize}
+			\item (+) no need for extra loads
+			\item (+) better usage of bits (these pros lead to better code density)
+			\item (-) destroys source operand(s) (i.e. \texttt{add R1 R2})
+			\item (-) may impact cycles per instruction
+		\end{itemize}
+
+		\item memory-memory
+		\begin{itemize}
+			\item (+) most compact (code density)
+			\item (-) high memory traffic (thus bottlenecked by memory)
+		\end{itemize}
+	\end{itemize}
+
+	\subsection{Instruction Set Architecture 2}
+
+	\subsubsection{RISC and Common Addressing Modes}
+
+	\begin{itemize}
+		\item register
+		\begin{itemize}
+			\item \texttt{add R4 R3 // R4 = R4 + R3}
+			\item used when value is in a register
+		\end{itemize}
+
+		\item immediate
+		\begin{itemize}
+			\item \texttt{add R4 \#3 // R4 = R4 + 3}
+			\item used for small constants (which occur frequently)
+		\end{itemize}
+
+		\item displacement
+		\begin{itemize}
+			\item \texttt{add R4 100(R1) // R4 = R4 + MEM[100 + R1]}
+			\item accesses the frame (arguments, local variables)
+			\item access the global data segment
+			\item accesses the fields of a data struct
+		\end{itemize}
+
+		\item register deferred/register indirect
+		\begin{itemize}
+			\item \texttt{add R3 (R1) // R3 = R3 + MEM[R1]}
+			\item accesses using a computed memory address
+		\end{itemize}
+
+		\item indexed
+		\begin{itemize}
+			\item \texttt{add R3 (R1 + R2) // R3 = R3 + MEM[R1 + R2]}
+			\item array accesses: R1 = base, R2 = index
+		\end{itemize}
+
+		\item direct/absolute
+		\begin{itemize}
+			\item \texttt{add R1 (1001) // R1 = R1 + MEM[1001]}
+			\item accessing global (``static'') data
+		\end{itemize}
+
+		\item memory deferred/memory indirect
+		\begin{itemize}
+			\item \texttt{add R1 @(R3) // R1 = R1 + MEM[MEM[R3]]}
+			\item pointer dereferencing: \texttt{x = *p;} (if p is not register-allocated)
+		\end{itemize}
+
+		\item autoincrement/postdecrement
+		\begin{itemize}
+			\item \texttt{add R1 (R2)+ // R1 = R1 + MEM[R2]; R2 = R2 + \textit{d}} (\textit{d} is the size of the operation)
+			\item looping through arrays, stack pop
+		\end{itemize}
+
+		\item autodecrement/predecrement
+		\begin{itemize}
+			\item \texttt{add R1 -(R2) // R1 = R1 + MEM[R2]; R2 = R2 - \textit{d}} (\textit{d} is the size of the operation)
+			\item same uses as autoincrement, stack push
+		\end{itemize}
+
+		\item scaled
+		\begin{itemize}
+			\item \texttt{add R1 100(R2)[R3] // R1 = R1 + MEM[100 + R2 + R3 * \textit{d}]}
+			\item array accesses for non-byte-sized elements
+		\end{itemize}
+	\end{itemize}
+
+	\subsection{Instruction Set Architecture 3}
+
+	\subsubsection{Condition Codes (for branch instructions)}
+
+	\begin{itemize}
+		\item Z
+		\begin{itemize}
+			\item zero flag
+			\item indicates the result of an arithmetic/logical expression is zero
+		\end{itemize}
+
+		\item C
+		\begin{itemize}
+			\item carry flag
+			\item indicates that an operation has a carry out. Enables numbers larger than a single word to be added/subtracted
+		\end{itemize}
+
+		\item S/N
+		\begin{itemize}
+			\item sign/negative flag
+			\item indicates the result of an operation is negative
+		\end{itemize}
+
+		\item V/O/W
+		\begin{itemize}
+			\item overflow flag
+			\item indicates the result of an operation is too large to fit in a register (using 2's complement representation)
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Instruction Encoding Tradeoffs}
+
+	\begin{itemize}
+		\item variable width
+		\begin{itemize}
+			\item (+) very versatile, uses memory efficiently
+			\item (-) instruction words must be decoded before number of bytes is known (harder to fetch/decode)
+		\end{itemize}
+
+		\item fixed width
+		\begin{itemize}
+			\item (+) every instruction word is an instruction, thus easier to fetch/decode
+			\item (-) uses memory inefficiently (same num. bits even for short instructions)
+		\end{itemize}
+
+		\item hybrid
+		\begin{itemize}
+			\item primarily for embedded processors to conserve memory
+			\item often use a subset of instructions, fewer registers, or even instruction compression
+		\end{itemize}
+	\end{itemize}
+
+	\subsection{ISA Examples}
+
+	\subsubsection{MIPS}
+
+	Characteristics:
+
+	\begin{itemize}
+		\item load/store ISA: only loads/stores can have memory operands, makes for easy pipelining and uniform instruction width
+		\item fixed instruction width = easy fetch and decode
+		\item small number of addressing modes = easy pipelining
+		\item large register file: 32 integer and 32 floating point registers
+		\item aligned memory = easy data fetching
+		\item quantitatively designed
+	\end{itemize}
+
+	\noindent Instruction format:
+
+	\begin{itemize}
+		\item R: \texttt{op, rs, rt, rd, shamt, funct} (\texttt{shamt} = shift amount, \texttt{funct} = ALU function)
+		\item I: op, rs, rt, 16-bit address
+		\item J: op, 26-bit address
+	\end{itemize}
+
 \end{document}
