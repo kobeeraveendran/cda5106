@@ -1075,6 +1075,194 @@
 		hierarchical page tables
 	\end{itemize}
 
-	
+	\section{ILP Techniques: Pipelining}
+
+	\subsection{Pipeline Design}
+
+	\subsubsection{How to execute an instruction}
+
+	5 stages:
+
+	\begin{enumerate}
+		\item Instruction fetch (IF)
+		\begin{itemize}
+			\item instruction register (IR) = Mem[PC]
+			\item new PC = PC + 4
+		\end{itemize}
+
+		\item instruction decode/register fetch (ID)
+		\begin{itemize}
+			\item A = Regs[IR$_{6..10}$]
+			\item B = Regs[IR$_{11..15}$]
+			\item Imm = sign-extend(IR$_{16..31}$)
+		\end{itemize}
+
+		\item execute (EX)
+		\begin{itemize}
+			\item memory reference: ALU output = A + Imm
+			\item reg/reg ALU operation: ALU output = A $op$ B
+			\item reg/immediate ALU operation: ALU output = A $op$ Imm
+			\item branch: ALU output = new PC + Imm; Cond = (A $op$ 0)
+		\end{itemize}
+
+		\item memory access/branch completion (MEM)
+		\begin{itemize}
+			\item memory reference
+			\begin{itemize}
+				\item \texttt{load\_mem\_data = Mem[ALUOutput] // load}
+				\item \texttt{Mem[ALUOutput] = B  // store}
+			\end{itemize}
+
+			\item branch
+			\begin{itemize}
+				\item \texttt{if (cond) PC = ALUOutput; else PC = NPC}
+			\end{itemize}
+		\end{itemize}
+
+		\item write-back (WB)
+		\begin{itemize}
+			\item reg-reg ALU operation: Regs[IR$_{16..20}$] = ALUOutput
+			\item reg-immediate ALU operation: Regs[IR$_{11..15}$] = ALUOutput
+			\item load instruction: Regs[IR$_{11..15}$] = \texttt{load\_mem\_data}
+		\end{itemize}
+	\end{enumerate}
+
+	\noindent Pipeline speedups (no stalls) for a pipeline of $n$ stages
+
+	speedup = $\frac{\texttt{avg. exec time unpipelined}}{\texttt{avg. exec time pipelined}}$
+
+	speedup = $\frac{T_{unpipe}}{T_{unpipe} / n + T_{latch} \cdot (n - 1)} = n$ (ideal case, $T_{latch} = 0$)
+
+	\begin{itemize}
+		\item pipelining helps by keeping CT constant, while improving CPI
+		\item or by keeping CPI constant, while improving CT
+		\item but most of the time, pipelining does a bit of both improving CPI and CT
+	\end{itemize}
+
+	\subsubsection{Pipeline hazards}
+
+	Three kinds:
+
+	\begin{itemize}
+		\item data hazards: dependencies between instructions prevent their overlapped execution
+		\item structural hazards: not enough hardware resources for all combinations of instructions (i.e. two multiply 
+		instructions need to be pipelined, but we only have one multiplier unit)
+		\item control hazards: branches change the PC, which results in late code (if the wrong code is executed)
+	\end{itemize}
+
+	\subsection{Branch Prediction 1}
+
+	Idea: avoid branch stalls by predicting which way a branch will go (i.e. taken vs. not-taken)
+
+	\begin{itemize}
+		\item perhaps use a prediction bit if branch taken, 0 if not taken. At instruction fetch, if prediction field is 1, 
+		predict taken, else not taken.
+		\item problem: some branches may alternate or not do the same thing every time, so we need more sophistication
+	\end{itemize}
+
+	\subsubsection{Smith $n$-bit counter predictor}
+
+	Idea: replace prediction bit/field with an $n$-bit counter
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/smith-counter.png}
+	\end{center}
+
+	\noindent Smith counter example (note the weakness on the alternating example):
+
+	\begin{center}
+		\includegraphics[scale=0.6]{assets/smith-example.png}
+	\end{center}
+
+	\subsubsection{Global Branch Correlation and Two-Level Global Branch Prediction}
+
+	Associate branch outcomes with a global taken/not-taken history of all branches. Make a prediction based on the outcome 
+	of the branch the last time the same global branch history was encountered.
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/two-level-global-branch-pred.png}
+	\end{center}
+
+	\subsubsection{Gshare predictor}
+
+	Problem with two-level global branch predictor was that prediction was only based on the global history of all branches, 
+	independent of individual branches. Gshare adds more context by also considering individual branches (using both PC and 
+	global branch history register to index into the pattern history table).
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/gshare-diagram.png}
+	\end{center}
+
+	\begin{center}
+		\includegraphics[scale=0.52]{assets/gshare-example.png}
+	\end{center}
+
+	\subsection{Branch Prediction 2}
+
+	\subsubsection{Two-Level Local Branch History}
+
+	Improving on Gshare: Local history with the Yeh/Patt Two-Level Local Branch predictor
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/yeh-patt-diagram.png}
+		\includegraphics[scale=0.5]{assets/yeh-patt-example.png}
+	\end{center}
+
+	\subsubsection{Hybrid/Tournament predictors}
+
+	There is no one-size-fits-all solution to branch prediction; some are just better for some programs while worse in 
+	others. So, the idea is to use a combination of them, pick the one that is correct more often, and over time lean/have 
+	a bias toward that one.
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/hybrid-example.png}
+	\end{center}
+
+	\subsection{Dependence Hazards and Pipeline Performance}
+
+	\subsubsection{Types of dependencies}
+
+	\begin{itemize}
+		\item True dependence
+		\begin{itemize}
+			\item \texttt{ADD \underline{R1}, R2, R3}
+			\item \texttt{SUB R4, R5, \underline{R1}}
+			\item may cause \textbf{RAW} hazards
+		\end{itemize}
+
+		\item Anti-dependence
+		\begin{itemize}
+			\item \texttt{ADD R3, R2, \underline{R1}}
+			\item \texttt{SUB \underline{R1}, R4, R5}
+			\item may cause \textbf{WAR} hazards
+			\item due to reuse, can be removed by just using another register
+		\end{itemize}
+
+		\item Output-dependence
+		\begin{itemize}
+			\item \texttt{ADD \underline{R1}, R2, R3}
+			\item \texttt{SUB \underline{R1}, R4, R5}
+			\item may cause \textbf{WAW} hazards
+			\item due to reuse, can be removed by just using another register
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Pipeline performance and loop analysis}
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/loop-analysis-ex1.png}
+	\end{center}
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/loop-analysis-ex2.png}
+	\end{center}
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/loop-analysis-ex3.png}
+	\end{center}
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/loop-analysis-ex4.png}
+	\end{center}
 
 \end{document}
