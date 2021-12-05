@@ -1265,4 +1265,224 @@
 		\includegraphics[scale=0.5]{assets/loop-analysis-ex4.png}
 	\end{center}
 
+
+	\section{Instruction Level Parallelism}
+
+	\subsection{Overview and CDC-6600}
+
+	Problem: true data dependences will cause stalls for even instructions that aren't dependent on it (i.e. loads will 
+	stall all other subsequent instructions for 2 cycles even on a cache hit; nothing else can occupy those stages)
+
+	\begin{itemize}
+		\item dynamic/out-of-order scheduling: expose more parallelism by ignoring artificial serial constraints of sequential program order
+		\item register renaming: often used with dynamic scheduling
+		\item precise interrupts (reorder buffer)
+		\item superscalar and VLIW processors: fetch and execute more than 1 instruction each cycle
+	\end{itemize}
+
+	\subsubsection{Dynamic scheduling}
+
+	Lessen the impact of true data dependencies:
+
+	\begin{itemize}
+		\item only data dependent instructions will stall
+		\item done by executing instructions in order of dependency (dataflow graph defines execution order)
+		\item ``out of order'' execution
+	\end{itemize}
+
+	\noindent Need to now modify the pipeline to accommodate this, since stalled dependent instructions shouldn't block 
+	subsequent independent instructions from progressing through the pipeline:
+
+	\begin{itemize}
+		\item Split ID (decode) stage into two new stages: DISPATCH (instruction dispatch) and ISSUE (instruction schedule/issue)
+		\item issue stage buffers instructions waiting on data
+		\item fetch/dispatch pipeline brings instructions into processor in program order (required to determine data deps)
+		\item issue/execute pipeline executes instructions based on data dependencies and available functional units (FUs)
+	\end{itemize}
+
+	\subsubsection{CDC-6600}
+
+	Early attempt at OOO execution, containing 4 stages after fetch:
+
+	\begin{itemize}
+		\item dispatch
+		\begin{itemize}
+			\item check for structural/WAW hazards
+			\item enter instruction into scoreboard + determine data depenedencies
+			\item route instruction to a free FU where it waits until data operands become available
+		\end{itemize}
+
+		\item issue
+		\begin{itemize}
+			\item wait for operands to become ready
+			\item scoreboard signals when operands are ready; instruction reads registers from register file, then issues 
+			to an available FU for execution
+		\end{itemize}
+
+		\item execute
+		\item write result: check for WAR hazard, stall if an outstanding \textit{prior} instruction in scoreboard reads 
+		the same register that's being written to, and the read has not yet taken place
+	\end{itemize}
+
+	\noindent Scoreboard data structures:
+
+	\begin{itemize}
+		\item Instruction status: table showing which stage an instruction is in (dispatch, issue, execute, write result)
+		\item functional unit status:
+		\begin{itemize}
+			\item \texttt{Busy}: FU is busy executing another instruction
+			\item \texttt{Op}: what instruction the FU is busy with
+			\item $F_i$: destination register
+			\item $F_j, F_k$: source registers
+			\item $Q_j, Q_k$: functional units responsible for producing the source registers
+			\item $R_j, R_k$: flags indicating whether the source registers are ready
+		\end{itemize}
+
+		\item register result status: which FU is going to write to each register
+	\end{itemize}
+
+	\subsection{Tomasulo's Algorithm}
+
+	Key aspects:
+
+	\begin{itemize}
+		\item read register operands at dispatch stage
+		\item unavailable registers are renamed at dispatch stage (eliminates WAR/WAW hazards)
+		\item if there are successive writes to the same register, only the last one is actually used to update it; helps 
+		WAW condition (CDC would've just stalled in dispatch until the WAW hazard went away)
+		\item distributes control among several reservation stations (instead of one centralized one like in CDC scoreboard)
+		\item results broadcasted to both register file and functional units: common data bus (CDB)
+	\end{itemize}
+
+	\subsubsection{Stages}
+
+	4 stages after fetch:
+
+	\begin{itemize}
+		\item dispatch
+		\begin{itemize}
+			\item check for structural hazards (if so, stall in dispatch stage if no reservation stations are free)
+			\item read register file
+			\item route instruction + data/tags to reservation station, where it waits until operands are available
+		\end{itemize}
+
+		\item issue
+		\begin{itemize}
+			\item wait until operands become available in the common data bus
+			\item grab operands from CDB and issue to an FU, if one is free
+		\end{itemize}
+
+		\item execute
+		\item write result
+		\begin{itemize}
+			\item broadcast result + tag to all reservation stations, store buffers, and register file via CDB
+			\item only write register file if the CDB tag matches the tag in register file
+		\end{itemize}
+	\end{itemize}
+
+	\subsection{Precise Interrupts and Reorder Buffer}
+
+	\subsubsection{Precise interrupts}
+
+	\begin{itemize}
+		\item OOO execution and interrupts can't coexist
+		\item when an interrupt occurs, the OS wants precise state to be restored
+		\begin{itemize}
+			\item all instructions \textit{before} the interrupting instruction have completed
+			\item all instructions \textit{after} the interrupting instruction have not completed
+			\item important because process state must be saved during an interrupt so OS can handle it, then restart execution
+		\end{itemize}
+	\end{itemize}
+
+	Examples of precise interrupts:
+
+	\begin{itemize}
+		\item external interrupts
+		\begin{itemize}
+			\item IO device request
+			\item timer interrupt
+			\item power failing
+		\end{itemize}
+
+		\item exceptions	
+		\begin{itemize}
+			\item arithmetic overflow, divide by 0, etc.
+			\item page fault
+		\end{itemize}
+
+		\item OS calls
+		\begin{itemize}
+			\item aka system call or trap
+			\item initiated via an explicit instruction in ISA
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Handling interrupts}
+
+	\begin{itemize}
+		\item imprecise interrupts
+		\begin{itemize}
+			\item ignore the problem
+			\item makes page faults difficult
+		\end{itemize}
+
+		\item in-order completion
+		\begin{itemize}
+			\item stall pipeline when necessary
+		\end{itemize}
+
+		\item software clean-up
+		\begin{itemize}
+			\item save information for trap handlers (pipeline state)
+			\item but machine dependent
+		\end{itemize}
+
+		\item hardware clean-up: restore consistent state
+		\item re-order instructions
+		\begin{itemize}
+			\item complete out-of-order
+			\item \textit{retire} in-order
+		\end{itemize}
+	\end{itemize}
+
+	\textbf{Rorder Buffer (ROB)}
+
+	\begin{itemize}
+		\item ROB is a FIFO queue with head and tail pointer
+		\item instruction dispatch
+		\begin{itemize}
+			\item reserve ROB entry at tail increment advance tail pointer
+			\item record ROB entry (ROB tag) with instruction in reservation station
+		\end{itemize}
+
+		\item instruction execution/completion
+		\begin{itemize}
+			\item write value into ROB entry specified by its ROB tag
+			\item DO NOT write result into register file yet (see retire)
+			\item if instruction caused exception, mark exception bit in ROB for the instruction
+		\end{itemize}
+
+		\item instruction retire
+		\begin{itemize}
+			\item check instruction at head of ROB
+			\item if completed, check exception bit
+			\item if no exception, commit state (write value to register file) and advance head pointer
+			\item if exception, squash subsequent instructions in ROB by setting tail pointer at head pointer; also, 
+			retire any completed instructions up until the exception instruction
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Handling branch mispredictions}
+
+	Handle similarly to exceptions as before
+
+	Slower:
+
+	\begin{itemize}
+		\item wait until mispredicted branch reaches head of ROB
+		\item squash entire ROB, set all ``in register file?'' bits
+		\item restart along correct path without problems
+		\item note that delaying recovery until retirement is a huge performance penalty
+	\end{itemize}
+
 \end{document}
