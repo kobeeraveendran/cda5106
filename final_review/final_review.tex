@@ -3,6 +3,7 @@
 \usepackage[legalpaper, portrait, margin=0.8in]{geometry}
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{graphicx}
 
 \title{CDA5106 - Advanced Computer Architecture \\ Final Exam Review}
 \author{Kobee Raveendran}
@@ -577,6 +578,208 @@
 		\item R: \texttt{op, rs, rt, rd, shamt, funct} (\texttt{shamt} = shift amount, \texttt{funct} = ALU function)
 		\item I: op, rs, rt, 16-bit address
 		\item J: op, 26-bit address
+	\end{itemize}
+
+	\section{Memory Hierarchy}
+
+	\subsection{Basics of Cache Architecture}
+
+	\subsubsection{Cache Organization}
+
+	A cache is similar to a table
+
+	\begin{itemize}
+		\item a \textbf{set} in cache = a row in table
+		\item a \textbf{way} in cache = a column in table
+		\item a \textbf{line} in cache = a cell in table
+	\end{itemize}
+
+	\subsubsection{Choices on Cache Associativities}
+
+	\begin{itemize}
+		\item direct mapped cache: a block can be placed in only one line in the cache (i.e. vertical array table)
+		\begin{itemize}
+			\item rigid placement of blocks in cache set
+			\item usually has higher miss rate
+			\item but power efficient (no need to search an entire way if the way is only one cell)
+		\end{itemize}
+		\item fully associative cache: a block can be placed in any line in the cache (i.e. a horizontal array table)
+		\begin{itemize}
+			\item flexible placement of blocks in cache set
+			\item has the lowest miss rate
+			\item but power hungry (have to search entire set [aka the whole cache] to find a block)
+		\end{itemize}
+		\item set-associative cache: a block can be placed in one of the ways in a set (i.e. a 2D array table)
+	\end{itemize}
+
+	\subsubsection{Cache Parameters}
+
+	\begin{itemize}
+		\item SIZE = total amount of cache data storage in bytes
+		\item BLOCKSIZE = total number of bytes in a single block
+		\item ASSOC = associativity (number of lines in a set)
+	\end{itemize}
+
+	\noindent Formulas:
+
+	\# of blocks in a cache = $\frac{SIZE}{BLOCKSIZE}$ \\
+
+	\# of sets in a cache = $\frac{\texttt{\# cache blocks}}{ASSOC} = \frac{SIZE}{BLOCKSIZE \cdot ASSOC}$ \\
+
+	\# of index bits = $\log_2(\# sets)$ \\
+
+	\# of block offset bits = $\log_2(BLOCKSIZE)$ \\
+
+	\# of tag bits = 32 $-$ \texttt{\#index bits} $-$ \texttt{\#offset bits}
+
+	\subsubsection{Examples}
+
+	Example 1: Processor accesses a 256B direct-mapped cache, which has a block size of 32B, with the below sequence 
+	of addresses. Show the contents of the cache after each access, and count the number of hits and replacements. \\
+
+	\# index bits = $\log_2(8) = 3$
+
+	\# offset bits = $\log_2(32) = 5$
+
+	\# tag bits = $32 - 3 - 5 = 24$ \\
+
+	\begin{tabular}[ht!]{|c|c|c|c|c|} \hline
+		Address (hex)		& Tag (hex) 		& Index and offset bits (binary)	& Index (decimal)	& Comment	\\ \hline
+		\texttt{0xFF0040E0}	& \texttt{0xFF0040}	& \textbf{111}0 0000				& 7					& miss	  	\\ \hline	
+		\texttt{0xBEEF005C}	& \texttt{0XBEEF00}	& \textbf{010}1 1100				& 2					& miss		\\ \hline
+		\texttt{0xFF0040E2}	& \texttt{0xFF0040}	& \textbf{111}0 0010				& 7					& hit		\\ \hline
+		\texttt{0xFF0040E8}	& \texttt{0xFF0040}	& \textbf{111}0 1000				& 7					& hit		\\ \hline
+		\texttt{0x00101078}	& \texttt{0x001010}	& \textbf{011}1 1000				& 3					& miss		\\ \hline
+		\texttt{0x002183E0}	& \texttt{0x002183}	& \textbf{111}0 0000				& 7					& miss/rep	\\ \hline
+		\texttt{0x00101064}	& \texttt{0x001010}	& \textbf{011}0 0100				& 3					& hit		\\ \hline
+		\texttt{0x0012255C}	& \texttt{0x001225}	& \textbf{010}1 1100				& 2					& miss/rep	\\ \hline
+		\texttt{0x00122544}	& \texttt{0x001225}	& \textbf{010}0 0100				& 2					& hit		\\ \hline
+	\end{tabular}
+
+	\subsubsection{Write Updates}
+
+	\begin{itemize}
+		\item Write-through (WT) policy
+		\begin{itemize}
+			\item writing to some level in the cache also means writing through to subsequent levels in the cache (i.e. 
+			next level in the memory hierarchy)
+		\end{itemize}
+
+		\item Write-back (WB) policy
+		\begin{itemize}
+			\item write only to the specified cache level, and set its dirty bit
+			\item when the block you wrote to is replaced (evicted), write the block to the next level of memory hierarchy
+		\end{itemize}
+
+		\item Write-allocate (WA) policy
+		\begin{itemize}
+			\item bring block into cache if the write misses (just like in read misses)
+			\item typically used in conjunction with write-back (WBWA)
+		\end{itemize}
+
+		\item Write-no-allocate (NA) policy
+		\begin{itemize}
+			\item do not bring the block into the cache if write misses
+			\item \textit{must} be used in conjunction with write-through (WTNA)
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Victim Cache}
+
+	\begin{itemize}
+		\item small fully-associative cache that sits alongside the primary cache
+		\item when main cache evicts a block, the victim cache takes the evicted block (called the ``victim'')
+		\item when the main cache misses, it searches the victim cache for recently discarded blocks; a victim cache hit 
+		means the main cache doesn't have to go to memory to search for a block
+
+		\item example:
+		\begin{itemize}
+			\item L1 cache (initially a set contains just A)
+			\item 2-entry victim cache that contains X, and Y (current LRU)
+			\item B misses in L1, evicts A, A goes to victim cache and replaces Y (previous LRU); X is new LRU
+			\item A then misses in L1 but hits in victim cache, so A and B \textit{swap} positions (A goes to L1, B goes to VC; 
+			note that X (prev LRU) is not replaced in the case of victim cache hits)
+			\item thus a victim cache is useful in cases of repeated conflicts and gives the illusion of set-associativity
+		\end{itemize}
+	\end{itemize}
+
+	\subsection{Replacement Policies}
+
+	\subsubsection{Optimal Replacement Policy}
+
+	\begin{itemize}
+		\item look into future and determine when each block in a set is needed again (if at all)
+		\item replace the block needed farthest in the future
+		\item note: not practical since we don't know in advance when blocks are needed, but this is the theoretical gold 
+		standard with which other replacement policies are evaluated against
+	\end{itemize}
+
+	\subsubsection{LRU implementation}
+
+	\begin{itemize}
+		\item assign a row and column in LRU matrix to each way in the set
+		\item if there's a hit in a way, set the row corresponding to that way, and unset the column corresponding to that way
+		\item the number of 1's in a row specifies the MRU order (thus, the LRU is the one with all 0's)
+	\end{itemize}
+
+	\begin{figure}[ht!]
+		\centering
+
+		\includegraphics[width=\textwidth]{assets/lru-matrix-implementation.png}
+	\end{figure}
+
+	\subsubsection{Pseudo-LRU implementation}
+
+	\begin{itemize}
+		\item LRU implementation takes $O(way^2)$ space and time; too expensive
+		\item PLRU approximates LRU with decent accuracy
+		\item PLRU complexity is $O(way)$
+	\end{itemize}
+
+	\begin{figure}[ht!]
+		\centering
+		\includegraphics[width=\textwidth]{assets/plru-initial-state.png}
+	\end{figure}
+
+	\begin{figure}[ht!]
+		\centering
+		\includegraphics[scale=0.7]{assets/plru-walkthrough.png}
+	\end{figure}
+
+	\newpage
+
+	\subsection{Inclusion Policies}
+
+	\begin{itemize}
+		\item block in inner cache level \textit{always} included in outer level cache too: \textbf{inclusive}
+		\item block in inner cache level \textit{never} included in outer level cache too: \textbf{exclusive}
+		\item block in inner cache level \textit{sometimes} included in outer level cache: \textbf{non-inclusive}
+	\end{itemize}
+
+	\begin{center}
+		\includegraphics[scale=0.5]{assets/inclusion-policy-ex1.png}
+		\includegraphics[scale=0.5]{assets/inclusion-policy-ex2.png}
+		\includegraphics[scale=0.5]{assets/inclusion-policy-ex3.png}
+		\includegraphics[scale=0.5]{assets/inclusion-policy-ex4.png}
+		\includegraphics[scale=0.5]{assets/inclusion-policy-ex5.png}
+		\includegraphics[scale=0.5]{assets/inclusion-policy-ex6.png}
+	\end{center}
+
+	\subsubsection{Inclusive outer cache Pros/Cons}
+
+	Pros:
+
+	\begin{itemize}
+		\item for most cases, external requests can be checked against the outer cache (if not in outer, cannot be in inner)
+		\item reduces contention for cache tags at inner cache
+		\item external snoop latency (and thus memory latency) is reduced significantly
+	\end{itemize}
+	
+	\noindent Cons:
+
+	\begin{itemize}
+		\item space wasteful; forced data redundancy
+		\item inflexible (power gating ways makes inner cache ineffective)
 	\end{itemize}
 
 \end{document}
