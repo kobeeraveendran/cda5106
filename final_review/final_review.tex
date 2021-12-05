@@ -782,4 +782,299 @@
 		\item inflexible (power gating ways makes inner cache ineffective)
 	\end{itemize}
 
+	\subsection{Cache Performance}
+
+	\subsubsection{Performance Metrics}
+
+	\begin{itemize}
+		\item Average Access Time (AAT)
+		\begin{itemize}
+			\item $AAT = L_1T + L_1MR \cdot L_2T + L_1MR \cdot L_2MR \cdot L_2MT$
+			\item $L_nT =$ level $n$ access time
+			\item $L_nMR =$ level $n$ miss rate
+			\item $L_nMT =$ level $n$ miss penalty
+		\end{itemize}
+	\end{itemize}
+
+	\newpage
+
+	\noindent CPI and AAT
+
+	\begin{itemize}
+		\item CPI (cycles per instruction) measures impact of AAT on overall performance
+		\item CPU time = $CPI \cdot IC \cdot AAT$
+		\item $CPI = CPI_0 + MemF \cdot AAT$
+		\begin{itemize}
+			\item $CPI_0$ = CPI with a perfect cache (0\% miss rate and 0-cycle access time)
+			\item $MemF$ = fraction of instructions which are loads/stores
+			\item the latencies used (i.e. $L_nMT$) must be ones that are \textit{not} overlapped with computation and 
+			must be amortized over concurrent memory accesses (i.e. divide by number of simultaneous memory accesses)
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Examples}
+
+	Suppose that we have a system with two levels of caches. The L1 cache has an access latency of 1 clock cycle, while 
+	the L2 cache has an access latency of 9 clock cycles. An L2 cache miss costs 100 clock cycles to service.
+	
+	\begin{enumerate}
+		\item Calculate the average access time (AAT or AMAT) if an application suffers 20\% L1 miss rate and 10\% L2 miss rate.
+		\item Calculate AAT' if it is known that on average, 100\% of L1 cache access latency is overlapped with computation, 
+		50\% of L2 cache access latency is overlapped with computation, and 0\% L2 miss latency is overlapped with computation. 
+		Assume that on average, 2 memory references are serviced simultaneously for L2 cache accesses, and only 1.2 for 
+		L2 cache misses.
+		\item Calculate the CPI using AAT' if the perfect cache CPI is 0.5 and 20\% of all instructions are memory 
+		references (load/store).
+	\end{enumerate}
+
+	\noindent Answer:
+
+	\begin{enumerate}
+		\item use $AAT = L1T + L1MR \cdot L2T + L1MR \cdot L2MR \cdot L2MT$
+		\begin{itemize}
+			\item $AAT = 1 + 0.2 \cdot 9 + 0.2 \cdot 0.1 \cdot 100 = 1 + 1.8 + 2 = 4.8$ clock cycles
+		\end{itemize}
+
+		\item New AAT'
+		\begin{itemize}
+			\item $L_1T = 0$ (because it is completely overlapped with computation)
+			\item $L_2T = \frac{0.5 \cdot 9}{2} = 2.25$
+			\item $L_2MT = \frac{1.0 \cdot 100}{1.2} = 83.3$
+			\item $AAT' = 0 + 0.2 \cdot 2.25 + 0.2 \cdot 0.1 \cdot 83.3 = 0.45 + 1.67 = 2.12$
+		\end{itemize}
+
+		\item use $CPI = CPI_0 + MemF  \cdot AAT'$
+		\begin{itemize}
+			\item $CPI = 0.5 + 0.2 * 2.12 = 0.92$
+		\end{itemize}
+	\end{enumerate}
+
+	\subsection{Improving Cache Performance}
+
+	\subsubsection{Reduce miss rate}
+
+	Types of cache misses:
+
+	\begin{itemize}
+		\item compulsory: misses required to bring blocks into the cache for the first time
+		\item conflict: misses that occur due to insufficient cache associativity
+		\item capacity: misses that occur due to finite cache size
+		\item coherence: misses that occur due to invalidation by other processors
+		\item system related: misses due to system activities such as system calls, interrupts, context switches, etc.
+	\end{itemize}
+
+	\begin{tabular}[ht!]{|c|c|c|c|} \hline
+		Parameters				& Compulsory	& Conflict		& Capacity		\\ \hline
+		larger cache size		& unchanged		& unchanged		& reduced		\\ \hline
+		larger block size		& reduced		& unclear		& unclear		\\ \hline
+		larger associativity	& unchanged		& reduced		& unchanged		\\ \hline
+	\end{tabular}
+
+	\noindent Reducing miss rate:
+
+	\begin{enumerate}
+		\item increase block size
+		\begin{itemize}
+			\item (+) idea: exploit spatial locality
+			\item (-) overdoing it can lead to cache pollution from useless data
+			\item (-) also increases miss penalty (have to bring more data in each miss)
+		\end{itemize}
+
+		\item increase cache size
+		\begin{itemize}
+			\item (+) larger caches hold more
+			\item (-) steals resources from other units
+			\item (-) diminishing returns: double size != double performance
+			\item (-) larger caches are slower to access
+		\end{itemize}
+
+		\item increase set associativity
+		\begin{itemize}
+			\item (+) fully associative yields better performance than direct mapped
+			\item (-) slower (spend more time searching within a set)
+			\item (-) diminishing returns: 8-way set-associative often comparable (almost equivalent) in HR/MR to fully-associative
+		\end{itemize}
+
+		\item hashing for better set mapping within cache
+		\begin{itemize}
+			\item useful if sets are not uniformly utilized (i.e. most of the time, addresses map to set index 0)
+		\end{itemize}
+
+		\item replacement or LRU insertion
+		\begin{itemize}
+			\item LRU works well 80\% of the time, but poorly when the working set is larger than cache
+			\item replacement: detect pathological cases and use random replacement
+			\item placement: detect pathological cases and insert at LRU
+		\end{itemize}
+
+		\item \textbf{Prefetching}
+		\begin{itemize}
+			\item prefetch: get data in cache before it's needed/requested by the processor
+			\item important metrics:
+			\begin{itemize}
+				\item coverage: fraction of misses prefetched
+				\item accuracy: fraction of prefetches that are useful
+				\item timeliness: implicitly part of accuracy, but also important to consider
+			\end{itemize}
+
+			\begin{center}
+				\includegraphics[scale=0.75]{assets/prefetching-metrics-diagram.png}
+			\end{center}
+
+			\item next line prefetching:
+			\begin{itemize}
+				\item fetch missing/requested block \textit{and} the next sequential block
+				\item works great for stream with high sequential locality i.e. instruction caches (Icaches)
+				\item uses unused memory bandwidth between misses (can hurt if there isn't much leftover bandwidth)
+			\end{itemize}
+
+			\item stride prefetching
+			\begin{itemize}
+				\item if memory is being accessed every $n$ locations, then just prefetch block + $n$
+				\item for example, useful in a for loop that increments by $n$ each iteration
+			\end{itemize}
+
+		\end{itemize}
+
+		\item other optimizations
+		\begin{itemize}
+			\item loop interchange: increase temporal locality by exchanging inner and outer loops (i.e. 2d for loop 
+			should have $i$ outer, $j$ inner if accessing $arr[i][j]$)
+			\item loop fusion: two loops with identical sets of iterations can be combined into one loop (duplicated things 
+			in the first loop might be out of the cache by the time the second loop executes, so putting both in one loop 
+			reduces the chances of this)
+		\end{itemize}
+	\end{enumerate}
+
+	\subsection{Cache Performance Improvements cont.}
+
+	\subsubsection{Reduce hit time}
+
+	\begin{itemize}
+		\item use small and simple caches: lower access time needed, and decreased power consumption)
+		\item way prediction
+		\begin{itemize}
+			\item goal is to keep hit time as low as possible (i.e. approach direct-mapped cache hit time)
+			\item use ``Predicted Next Way'' (PNW) bits for each block
+			\item when a block is accessed, read along its PNW bits
+			\item on the next access, only read the predicted way (which is just a single tag comparison)
+			\item if predicted correctly, you benefit from an extremely fast hit time; 90\% acc. for 2-way, 80\% for 4-way
+			\item if predicted incorrectly, you pay the penalty of accessing other ways and then also having to update 
+			the PNW bits
+		\end{itemize}
+
+		\item pipelined cache access: just pipeline the stages for accessing in a cache (decode \& activate row, tag compare, select bytes/words)
+		\item split and multi-banked cache organization
+		\begin{itemize}
+			\item in a unified L1 cache that holds instructions and data, each cycle it has to be accessed to supply instructions 
+			to the pipeline, and each cycle, several load/store instructions may access it. Thus, it needs to have many ports 
+			(expensive and slow)
+			\item solution: split into instruction cache + data cache
+			\item no longer contending for the same ports
+			
+			\begin{center}
+				\includegraphics[scale=0.6]{assets/unified-split-multibank.png}
+			\end{center}
+		\end{itemize}
+
+	\end{itemize}
+
+	\subsubsection{Reduce miss penalty}
+
+	\begin{itemize}
+		\item use multi-level caches
+		\begin{itemize}
+			\item single level cache: too small, high miss rate; too large, high hit (access) time
+			\item multi-level cache: L1 (small but fast), L2 (slower but larger), L3 (even slower but even larger)
+			\item since it takes a long time to go down to main memory, just put a cache between L1 and main memory (L2 cache)
+		\end{itemize}
+
+		\item use write buffers
+		\begin{itemize}
+			\item for writes (write-through) or write backs (write-back), don't make CPU wait on the write to memory
+			\item use a write buffer: on read miss, check for match
+		\end{itemize}
+
+		\item early restart/critical word first
+		\begin{itemize}
+			\item early restart: as soon as requested word arrives, forward it to CPU; miss penalty time is now the time 
+			needed to fetch the requested word
+			\item critical word first: problem with early restart (what if requested word is in the middle of a block?); 
+			start fetching the block with the required (critical) word, and fill in the rest
+		\end{itemize}
+
+		\item subblocking
+		\begin{itemize}
+			\item problem: tags are overhead, and take up extra space
+			\item partial soln: large blocks reduce amount of tag storage (double blocksize means we halve the num. blocks, 
+			which also means we halve the number of tags); but large blocks increase miss penalty
+			\item complete soln: use large blocks, but also subdivide blocks into subblocks. Fetch only 1 subblock on a miss, 
+			keep valid bit for subblocks. Also better if other subblocks are prefetched in the background (aka combine 
+			subblocking with early restart/critical word first)
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Reduce power consumption}
+
+	\begin{itemize}
+		\item parallel vs. sequential cache access: parallel is faster, but sequential is more power efficient; use parallel 
+		for L1, and sequential for L2/L3
+	\end{itemize}
+
+	\subsection{Virtual Memory}
+
+	Program uses virtual address but translates (maps) it to a physical address at runtime.
+
+	\subsubsection{Paging}
+
+	\begin{itemize}
+		\item memory divided into chunks called pages, typically 4KB
+		\item each page in program address space mapped into a page frame
+		\item page has virtual address (VA), page frame has physical address (PA)
+		\item OS keeps a page table that translates VA to PA; each entry is a page table entry (PTE)
+		\item illusion of larger memory than physically available by swapping space in storage (page swapped in/out on demand)
+	\end{itemize}
+
+	\subsubsection{Page fault}
+
+	\begin{itemize}
+		\item page fault: exception raised because of illegal access (insufficient permission [write to read-only], page miss 
+		[page not in physical memory due to PTE being unmapped])
+		
+		\item page miss handling:
+		\begin{itemize}
+			\item page miss incurs a page fault, triggers OS page fault handler
+			\item victim page selected and swapped out to swap space in disk
+			\item page read from disk and swapped into now-free page frame
+			\item page fault handler exits, and instruction that caused page fault re-executed
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Accelerating page table access}
+
+	\begin{itemize}
+		\item page table is large, so accessing it takes a while
+		\item use a cache of a small number of PTEs that are recently used, called a Translation Lookaside Buffer (TLB)
+		\item just like regular caches, a TLB can have/be:
+		\begin{itemize}
+			\item split into instruction and data TLB
+			\item multi-level
+			\item replacement policies (LRU, PLRU, etc.)
+			\item associativity, blocksize, cache size is fixed to size of PTE
+		\end{itemize}
+	\end{itemize}
+
+	\subsubsection{Page table size}
+
+	\begin{itemize}
+		\item suppose we have a 48-bit address space, and page size is 4KB (hence 12-bit page offset)
+		\item there are $48 - 12 = 36$ bits used for page address
+		\item so there are $2^{36} = 64$ giga pages
+		\item each PTE is 8 Bytes in size, so page table is 64G $\cdot$ 8B = 512GB
+		\item each program has a page table, so we need $1000 \cdot 512$GB for page tables normally; reduce this using 
+		hierarchical page tables
+	\end{itemize}
+
+	
+
 \end{document}
