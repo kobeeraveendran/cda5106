@@ -654,4 +654,229 @@
 
     \end{enumerate}
 
+    \section{Instruction Level Parallelism}
+
+    \begin{enumerate}
+        \item Using the below code fragment, identify the number of true dependences, anti-dependences, output dependences, 
+        and control dependencies:
+
+        \texttt{LD R2, 0(R1)}\\
+        \texttt{DADDI R3, R2, \#2}\\
+        \texttt{SD 0(R1), R2}\\
+        \texttt{DSUB R4, R1, R3}\\
+        \texttt{BNEZ R4, target}
+        \texttt{DMUL R3, R4, R5}\\
+
+        Ans: 5 true (RAW), 2 anti (WAR), 1 output (WAW), 1 control (num. instructions after the branch)
+
+        \item Identify all dependencies for the following instructions:
+        
+        \texttt{SUB R2, R1, R3}\\
+        \texttt{ADD R4, R5, R4}\\
+        \texttt{BEQ R4, target}\\
+        \texttt{LOAD R1, 80(R5)}\\
+
+        Ans: no dependency, no dependency, RAW, WAR
+
+        \item Register renaming can handle \underline{WAR/WAW} hazards without stalls, but cannot do so for 
+        \underline{RAW} hazards.
+
+        \item Given the following state of Tomasulo with a precise exception pipeline, determine the status of each 
+        instruction.
+
+        \begin{table}[ht!]
+            \centering
+            \begin{tabular}{|c|c|c|c|c|}
+            \hline
+                Tag  & S1 ready? & S1 tag/value & S2 ready? & S2 tag/value \\ \hline
+                ROB3 & N         &              & N         &              \\ \hline
+                ROB6 & Y         &              & Y         &              \\ \hline
+            \end{tabular}
+        \end{table}
+
+        \begin{table}[ht!]
+            \centering
+            \begin{tabular}{|c|c|c|c|c|c|c|}
+                \hline
+                Entry & Dest & Result & Exception? & Complete? & PC & head/tail? \\ \hline
+                ROB1  & F3   &        & Y          & Y         & A  &            \\ \hline
+                ROB2  & F1   &        & N          & Y         & B  & HEAD       \\ \hline
+                ROB3  & F2   &        &            &           & C  &            \\ \hline
+                ROB4  & F3   &        &            &           & D  &            \\ \hline
+                ROB5  & F4   &        & N          & Y         & E  &            \\ \hline
+                ROB6  & R1   &        &            &           & F  &            \\ \hline
+                ROB7  &      &        &            &           &    & TAIL       \\ \hline
+            \end{tabular}
+        \end{table}
+
+        Ans:
+
+        \begin{table}[ht!]
+            \centering
+            \begin{tabular}{|c|c|c|c|c|}
+                \hline
+                Instr & Dispatched? & Issued? & Completed? & Retired? \\ \hline
+                A     & Y           & Y       & Y          & Y        \\ \hline
+                B     & Y           & Y       & Y          & N        \\ \hline
+                C     & Y           & N       & N          & N        \\ \hline
+                D     & Y           & Y       & N          & N        \\ \hline
+                E     & Y           & Y       & Y          & N        \\ \hline
+                F     & Y           & N       & N          & N        \\ \hline
+            \end{tabular}
+        \end{table}
+
+        \item Register renaming eliminates hazards by renaming \underline{destination registers}.
+        \item Which of the following enables the correct implementation of precise interrupts in the Tomasulo algorithm?
+        
+        Ans: the reorder buffer (ROB)
+    \end{enumerate}
+
+    \section{Misc. Practice}
+
+    \begin{enumerate}
+        \item q1
+        \begin{enumerate}
+            \item Adding a victim cache may \underline{not change} the number of cache misses, may \underline{not change} the 
+            cache hit/access time, and may \underline{decrease} cache miss time.
+
+            \item Adding prefetching to a cache (assuming mostly accurate and timely) may \underline{decrease} the number of 
+            cache misses, may \underline{not change} the hit/access time, and may \underline{decrease} miss time.
+
+            \item Adding way prediction to a set associative cache (assuming mostly accurate) may \underline{not change} the 
+            number of cache misses, may \underline{decrease} the hit/access time, and may \underline{increase} miss time.
+
+            \item Choosing a physically-indexed and physically-tagged (PIPT) cache over a virtually-indexed and virtually-tagged 
+            (VIVT) cache may \underline{not change} the number of cache misses, may \underline{increase} the hit/access time, 
+            and may \underline{not change} miss time.
+        \end{enumerate}
+
+        \item Suppose that for a direct-mapped L1 cache, we have decided to use the virtually-indexed and physically-tagged 
+        (VIPT) design. Suppose that page size is 4KB and cache block size is 64B. Then, cache size is restricted to 4KB. 
+        Suppose you find that the cache size needs to be increased to provide good performance. What are your options to 
+        allow a larger cache size?
+
+        Ans: increase associativity, increase page size
+
+        max cache size = (page size) / (cache block size) $\cdot$ associativity $\cdot$ cache block size\\
+        = page size $\cdot$ associativity
+
+        \item Suppose the perfect-memory CPI (CPI$_0$) is 0.5, the fraction of memory instructions is 20\%, the L1 miss rate 
+        is 10\%, and the L2 miss rate is 15\%. L1 access time is 1 cycle, L2 access time is 8 cycles, and L2 miss penalty 
+        is 250 cycles. Calculate both AMAT and CPI.
+
+        Ans:\\
+        AMAT = 5.55 cycles\\
+        CPI = 1.61 cycles
+
+        AMAT = L1T + L1MR $\cdot$ L2T + L1MR $\cdot$ L2MR $\cdot$ L2MT = $1 + (0.10)(8) + (0.10)(0.15)(250) = 5.55$
+
+        CPI = CPI$_0$ + MemF $\cdot$ AAT = 0.5 + (0.2)(5.55) = 1.61
+
+        \item The following code segment is a loop that accesses all array elements of A:
+        
+        \texttt{sum = 0.0;}\\
+        \texttt{for (i = 0; i < N; i++)}\\
+        \texttt{sum = sum + A[i];}
+
+        It is known that the cache block size is 16 bytes while each element of array A is 4 bytes (hence, four elements 
+        fit in one cache block). The array is aligned (A[0:4] all fit in one block, next four in the next block, etc.). 
+        We have a software prefetcher function that, given one input operand (the address of the data to be fetched), 
+        fetches it ahead of time. For example, \texttt{\_\_Prefetch(\&A[8])} brings in the block containing A[8], A[9], A[10], 
+        and A[11]. Meanwhile, \texttt{\_\_Prefetch(\&A[9])} executes but does not affect the cache as the block was already 
+        brought into the cache by the first call (and is thus unnecessary).
+
+        In order to hide the L1 miss penalty, we need to prefetch 10 iterations ahead. Insert the necessary code to 
+        accomplish this in the fields below, while using as few prefetch calls as possible.
+
+        \begin{center}
+            \includegraphics{assets/prefetch-code.png}
+        \end{center}
+
+        Ans: \\
+        (a) \texttt{i \% 4 == 0}\\
+        (b) \texttt{\&A[i + 10])}
+
+        \item (with reference to question 4) Assume that prefetching increases instruction count by 5\%, removes L1 
+        miss penalty completely, but does not change L1 miss rate (remember, prefetches still miss in the cache), L2 
+        miss rate, or L2 miss penalty. Find the new AMAT, CPI, and speedup of the program using prefetching over the 
+        one that didn't.
+
+        Ans:
+
+        new AMAT = 4.75 cycles\\
+        new CPI = 1.45 cycles\\
+        speedup = 1.057X
+
+        AMAT = L1T + L1MR $\cdot$ L2T + L1MR $\cdot$ L2MR $\cdot$ L2MT\\
+        = 1 + (0.10)(0) + (0.10)(0.15)(250) = 4.75
+
+        CPI = CPI$_0$ + MemF $\cdot$ AAT = 0.5 + (0.20)(4.75) = 1.45
+
+        CPU time = IC $\cdot$ CPI $\cdot$ CT = (100)(1.61)(1) = 161 cycles
+
+        new CPU time = (105)(1.45)(1) = 152.25 cycles
+
+        speedup = $\frac{161}{152.25}$ = 1.057X
+
+        \item Given the following initial content of the branch prediction structures, when a conditional branch A 
+        (\texttt{PC 0x...A}) is encountered, what is the predicted outcome? Given the actual outcome of branch A is ``taken'', 
+        show the final content of the structures. Afterward, a branch B (\texttt{PC 0x...2}) is encountered; what is 
+        its predicted outcome? Given its actual outcome is ``not taken'', show the final content of the structures.
+
+        (see paper)
+
+        \item Given the following instructions:
+        
+        \texttt{A: load R1, 100(R0) // R1 = MEM[R0+100]}\\
+        \texttt{B: load R2, 200(R0) // R2 = MEM[R0+200]}\\
+        \texttt{C: addi R2, R2, \#1 // R2 = R2 + 1}\\
+        \texttt{D: bnez R1, X // if (R1 != 0) jump to X}\\
+        \texttt{F: add R3, R2, \#5  // R3 = R2 + 5}\\
+        ...\\
+        \texttt{X: load R4, 0(R1) // R4 = MEM[R1 + 0]}
+
+        With initial register/memory values of:
+
+        \texttt{R0 = 0}\\
+        \texttt{R1 = 100}\\
+        \texttt{R2 = 200}\\
+        \texttt{R3 = 300}\\
+        \texttt{R4 = 400}\\
+        \texttt{R5 = 500}\\
+        \texttt{MEM[100] = 11}\\
+        \texttt{MEM[200] = 22}
+
+        Suppose that we have the following scenarios:
+
+        \begin{enumerate}
+            \item
+            \begin{itemize}
+                \item all prior instructions have retired
+                \item instructions A, B, C, and D have been dispatched
+                \item instructions A and B have been issued
+            \end{itemize}
+
+            \item
+            \begin{itemize}
+                \item instructions A, B, C, D, E, and F have been dispatched
+                \item instructions B and C have completed execution without exception
+                \item instruction E has been predicted as NOT TAKEN
+            \end{itemize}
+
+            \item
+            \begin{itemize}
+                \item instructions A and B have retired
+                \item instructions D and F have completed execution without exception
+                \item instruction E has completed execution and it was determined that the true branch outcome is TAKEN, 
+                but E was predicted as NOT TAKEN, hence E was mispredicted (treat as exception)
+            \end{itemize}
+
+            \item show the content of the register file at the time right before and after the pipeline is 
+            flushed to handle the branch misprediction at E
+        \end{enumerate}
+
+        Ans: (see paper)
+
+    \end{enumerate}
+
 \end{document}
